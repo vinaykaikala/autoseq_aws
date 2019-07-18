@@ -46,3 +46,4 @@ vardict=2016.02.19
 variant-effect-predictor=83
 vcflib=1.0.0_rc0
 vt=2015.11.10
+boto3
