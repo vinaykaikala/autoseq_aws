@@ -13,39 +13,41 @@ from autoseq.util.path import mkdir
 
 @click.command()
 @click.argument('sample', type=click.File('r'))
+@click.argument('--tool', type=str, required=True)
 @click.pass_context
-def liqbio(ctx, sample):
-    logging.info("Running Liquid Biopsy pipeline")
-    logging.info("Sample is {}".format(sample))
+def liqbio(ctx, sample, tool):
+    print "HIII", tool
+    #logging.info("Running Liquid Biopsy pipeline")
+    #logging.info("Sample is {}".format(sample))
 
-    logging.debug("Reading sample config from {}".format(sample))
-    sampledata = json.load(sample)
+    #logging.debug("Reading sample config from {}".format(sample))
+    #sampledata = json.load(sample)
 
-    if ctx.obj['jobdb']:
-        mkdir(os.path.dirname(ctx.obj['jobdb']))
+    #if ctx.obj['jobdb']:
+    #    mkdir(os.path.dirname(ctx.obj['jobdb']))
     
-    ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
-                                         refdata=ctx.obj['refdata'],
-                                         job_params=ctx.obj['job_params'],
-                                         outdir=ctx.obj['outdir'],
-                                         libdir=ctx.obj['libdir'],
-                                         maxcores=ctx.obj['cores'],
-                                         runner=ctx.obj['runner'],
-                                         jobdb=ctx.obj['jobdb'],
-                                         dot_file=ctx.obj['dot_file'],
-                                         umi=ctx.obj['umi'],
-                                         scratch=ctx.obj['scratch'])
+    #ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
+    #                                    refdata=ctx.obj['refdata'],
+    #                                    job_params=ctx.obj['job_params'],
+    #                                    outdir=ctx.obj['outdir'],
+    #                                     libdir=ctx.obj['libdir'],
+    #                                     maxcores=ctx.obj['cores'],
+    #                                     runner=ctx.obj['runner'],
+    #                                     jobdb=ctx.obj['jobdb'],
+    #                                     dot_file=ctx.obj['dot_file'],
+    #                                     umi=ctx.obj['umi'],
+    #                                     scratch=ctx.obj['scratch'])
 
     # start main analysis
-    ctx.obj['pipeline'].start()
+    #ctx.obj['pipeline'].start()
     #
-    logging.info("Waiting for pipeline to finish.")
-    while ctx.obj['pipeline'].is_alive():
-        logging.debug("Waiting for LiqBioPipeline")
-        time.sleep(5)
+    #logging.info("Waiting for pipeline to finish.")
+    #while ctx.obj['pipeline'].is_alive():
+    #    logging.debug("Waiting for LiqBioPipeline")
+    #    time.sleep(5)
 
     # # return_code from run_pipeline() will be != 0 if the pipeline fails
-    sys.exit(ctx.obj['pipeline'].exitcode)
+    #sys.exit(ctx.obj['pipeline'].exitcode)
 
 
 @click.command()

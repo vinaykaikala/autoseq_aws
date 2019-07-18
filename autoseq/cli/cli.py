@@ -10,7 +10,7 @@ from .alascca import alascca as alascca_cmd
 from .liqbio import liqbio as liqbio_cmd
 from .liqbio import liqbio_prepare as liqbio_prepare_cmd
 
-__author__ = 'dankle'
+__author__ = 'dankle; Vinay Kaikala'
 
 
 @click.group()
