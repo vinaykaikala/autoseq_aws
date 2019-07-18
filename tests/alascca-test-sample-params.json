@@ -1,0 +1,4 @@
+{
+  "cov-low-thresh-fraction": 0.95,
+  "cov-low-thresh-fold-cov": 20
+}

@@ -1,0 +1,13 @@
+pip
+nose
+pytest
+
+pysam=0.8.4
+pyvcf=0.6.8.dev0
+
+click
+matplotlib
+
+# required for referral-manager to install
+pycparser
+cffi
