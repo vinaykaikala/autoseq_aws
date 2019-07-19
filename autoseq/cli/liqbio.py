@@ -12,10 +12,10 @@ from autoseq.util.path import mkdir
 
 
 @click.command()
-@click.option('--tool', type=str, required=True)
+@click.option('--tool', required=True, help="Tool name to run the step")
 @click.argument('sample', type=click.File('r'))
 @click.pass_context
-def liqbio(ctx, sample, tool):
+def liqbio(ctx,tool,sample ):
     print "HIII", tool
     #logging.info("Running Liquid Biopsy pipeline")
     #logging.info("Sample is {}".format(sample))
