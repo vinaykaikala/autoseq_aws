@@ -12,7 +12,7 @@ from autoseq.util.path import mkdir
 
 
 @click.command()
-@click.argument('--tool', type=str, required=True)
+@click.option('--tool', type=str, required=True)
 @click.argument('sample', type=click.File('r'))
 @click.pass_context
 def liqbio(ctx, sample, tool):
