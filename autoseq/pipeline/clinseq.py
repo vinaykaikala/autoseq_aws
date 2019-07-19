@@ -498,21 +498,22 @@ class ClinseqPipeline(PypedreamPipeline):
         """
 
         capture_to_barcodes = self.get_unique_capture_to_clinseq_barcodes()
-        for unique_capture in capture_to_barcodes.keys():
-            curr_bamfiles = []
-            capture_kit = unique_capture.capture_kit_id
-            for clinseq_barcode in capture_to_barcodes[unique_capture]:
-                curr_bamfiles.append(
-                    align_library(self,
-                                  fq1_files=find_fastqs(clinseq_barcode, self.libdir)[0],
-                                  fq2_files=find_fastqs(clinseq_barcode, self.libdir)[1],
-                                  clinseq_barcode=clinseq_barcode,
-                                  ref=self.refdata['bwaIndex'],
-                                  outdir= "{}/bams/{}".format(self.outdir, capture_kit),
-                                  maxcores=self.maxcores,
-                                  remove_duplicates=True))
+        print (capture_to_barcodes)
+        #for unique_capture in capture_to_barcodes.keys():
+        #    curr_bamfiles = []
+        #    capture_kit = unique_capture.capture_kit_id
+        #    for clinseq_barcode in capture_to_barcodes[unique_capture]:
+        #        curr_bamfiles.append(
+        #            align_library(self,
+        #                          fq1_files=find_fastqs(clinseq_barcode, self.libdir)[0],
+        #                          fq2_files=find_fastqs(clinseq_barcode, self.libdir)[1],
+        #                          clinseq_barcode=clinseq_barcode,
+        #                          ref=self.refdata['bwaIndex'],
+        #                          outdir= "{}/bams/{}".format(self.outdir, capture_kit),
+        #                          maxcores=self.maxcores,
+        #                          remove_duplicates=True))
 
-            self.merge_and_rm_dup(unique_capture, curr_bamfiles)
+         #   self.merge_and_rm_dup(unique_capture, curr_bamfiles)
 
     def call_germline_variants(self, normal_capture, bam):
         """

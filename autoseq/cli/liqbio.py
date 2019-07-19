@@ -16,28 +16,31 @@ from autoseq.util.path import mkdir
 @click.argument('sample', type=click.File('r'))
 @click.pass_context
 def liqbio(ctx,tool,sample ):
-    print "HIII", tool
-    #logging.info("Running Liquid Biopsy pipeline")
-    #logging.info("Sample is {}".format(sample))
 
-    #logging.debug("Reading sample config from {}".format(sample))
-    #sampledata = json.load(sample)
+    logging.info("Running Liquid Biopsy pipeline")
+    logging.info("Sample is {}".format(sample))
 
-    #if ctx.obj['jobdb']:
-    #    mkdir(os.path.dirname(ctx.obj['jobdb']))
+    logging.debug("Reading sample config from {}".format(sample))
+    sampledata = json.load(sample)
+
+    if ctx.obj['jobdb']:
+        mkdir(os.path.dirname(ctx.obj['jobdb']))
     
-    #ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
-    #                                    refdata=ctx.obj['refdata'],
-    #                                    job_params=ctx.obj['job_params'],
-    #                                    outdir=ctx.obj['outdir'],
-    #                                     libdir=ctx.obj['libdir'],
-    #                                     maxcores=ctx.obj['cores'],
-    #                                     runner=ctx.obj['runner'],
-    #                                     jobdb=ctx.obj['jobdb'],
-    #                                     dot_file=ctx.obj['dot_file'],
-    #                                     umi=ctx.obj['umi'],
-    #                                     scratch=ctx.obj['scratch'])
+    ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
+                                        refdata=ctx.obj['refdata'],
+                                        job_params=ctx.obj['job_params'],
+                                        outdir=ctx.obj['outdir'],
+                                         libdir=ctx.obj['libdir'],
+                                         maxcores=ctx.obj['cores'],
+                                         runner=ctx.obj['runner'],
+                                         jobdb=ctx.obj['jobdb'],
+                                         dot_file=ctx.obj['dot_file'],
+                                         umi=ctx.obj['umi'],
+                                         scratch=ctx.obj['scratch'],
+                                         tool = tool)
 
+    ctx.obj['pipeline'].runaws(tool)
+    print('done')
     # start main analysis
     #ctx.obj['pipeline'].start()
     #

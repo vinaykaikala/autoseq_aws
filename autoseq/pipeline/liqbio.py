@@ -19,9 +19,18 @@ class LiqBioPipeline(ClinseqPipeline):
         self.default_job_params["vardict-min-alt-frac"] = 0.01
         self.default_job_params["vardict-min-num-reads"] = None
         self.default_job_params["vep-additional-options"] = " --pick --filter_common "
+        self.step_to_run = {
+            "skewer" : self.skewer
+        }
+
+
+    def runaws(self,tool):
+        return self.step_to_run[tool]()
+
+
 
         # Remove clinseq barcodes for which data is not available:
-        self.check_sampledata()
+        """self.check_sampledata()
 
         if umi:
             # Configure the umi processes from fastq to bam file:
@@ -52,7 +61,17 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_all_lowpass_qcs()
 
         # Configure MultiQC:
-        self.configure_multi_qc()
+        self.configure_multi_qc()"""
+
+    def skewer(self):
+        """Run steps related to skewer"""
+
+        # Remove clinseq barcodes for which data is not available:
+        self.check_sampledata()
+        self.configure_align_and_merge()
+
+        return True
+
 
     def configure_single_capture_analysis_liqbio(self, unique_capture):
         input_bam = self.get_capture_bam(unique_capture, umi=False)
