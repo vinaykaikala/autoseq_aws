@@ -37,7 +37,7 @@ def liqbio(ctx,tool,sample ):
                                          dot_file=ctx.obj['dot_file'],
                                          umi=ctx.obj['umi'],
                                          scratch=ctx.obj['scratch'],
-                                         tool = tool)
+                                         )
 
     ctx.obj['pipeline'].runaws(tool)
     print('done')
