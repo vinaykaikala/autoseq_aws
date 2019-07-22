@@ -488,8 +488,8 @@ class ClinseqPipeline(PypedreamPipeline):
                     self.outdir, clinseq_barcode)
                 fastqc.jobname = "fastqc-{}".format(clinseq_barcode)
                 self.qc_files.append(fastqc.output)
-                #self.add(fastqc)
-                cmd_list.append(fastqc.command())
+                self.add(fastqc)
+                #cmd_list.append(fastqc.command())
 
         return cmd_list
 
@@ -1255,8 +1255,8 @@ class ClinseqPipeline(PypedreamPipeline):
         multiqc.search_dir = self.outdir
         multiqc.output = "{}/multiqc/{}-multiqc".format(self.outdir, self.analysis_id)
         multiqc.jobname = "multiqc-{}".format(self.sampledata['sdid'])
-        #self.add(multiqc)
-        return [multiqc.command()]
+        self.add(multiqc)
+        #return [multiqc]
 
     def get_coverage_bed(self, targets):
         """

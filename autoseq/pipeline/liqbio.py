@@ -65,9 +65,9 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_multi_qc() --> added in qc_step()"""
     def qc_step(self):
         # Configure fastq QCs:
-        print(self.configure_fastq_qcs())
+        self.configure_fastq_qcs()
         # Configure MultiQC:
-        print(self.configure_multi_qc())
+        self.configure_multi_qc()
 
     def skewer(self):
         """Run steps related to skewer"""
