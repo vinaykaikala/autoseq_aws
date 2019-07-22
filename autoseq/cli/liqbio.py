@@ -41,6 +41,7 @@ def liqbio(ctx,tool,sample ):
 
     step_status = ctx.obj['pipeline'].runaws(tool)
     if not step_status:
+        print('no tool')
         logging.debug("No Step configured with name: " + tool + 'check step_to_run dict to fix error')
         sys.exit(400)
 
