@@ -19,19 +19,45 @@ class LiqBioPipeline(ClinseqPipeline):
         self.default_job_params["vardict-min-alt-frac"] = 0.01
         self.default_job_params["vardict-min-num-reads"] = None
         self.default_job_params["vep-additional-options"] = " --pick --filter_common "
+
+        #Below dictionary will set the steps to run aws batch job with docker image (key: docker image name , value: function to add job).
         self.step_to_run = {
             "qc": self.qc_step,
-            "skewer": self.skewer
+            "alignment": self.alignment_step
         }
 
 
     def runaws(self,tool):
-        return self.step_to_run[tool]()
+        """Set the jobs to run by aws batch"""
+        #run common steps which will initalize the sef variables
+        self.check_sampledata()
+        current_step = self.step_to_run.get(tool, False)
+        if current_step:
+            current_step()
+            return True
+
+        return False
+        #return self.step_to_run[tool]()
+
+    def qc_step(self):
+        """Run Steps for QC : Docker image: qc"""
+        # Configure fastq QCs:
+        self.configure_fastq_qcs()
+        # Configure MultiQC:
+        self.configure_multi_qc()
+        return True
+
+    def skewer(self):
+        """Run steps related to skewer"""
+        ###IF UMI FLAG is given
+        # self.configure_umi_processing()
+        # self.configure_align_and_merge()
+
+        return True
 
 
 
-        # Remove clinseq barcodes for which data is not available:
-        """self.check_sampledata()
+    """self.check_sampledata()
 
         if umi:
             # Configure the umi processes from fastq to bam file:
@@ -62,25 +88,10 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_all_lowpass_qcs()
 
         # Configure MultiQC:
-        self.configure_multi_qc() --> added in qc_step()"""
-    def qc_step(self):
-        # Configure fastq QCs:
-        self.configure_fastq_qcs()
-        # Configure MultiQC:
-        self.configure_multi_qc()
+        self.configure_multi_qc() --> added in qc_step()
+    """
 
-    def skewer(self):
-        """Run steps related to skewer"""
-
-        # Remove clinseq barcodes for which data is not available:
-        self.check_sampledata()
-        ###IF UMI FLAG is given
-        #self.configure_umi_processing()
-        #self.configure_align_and_merge()
-
-        return True
-
-
+    # Remove clinseq barcodes for which data is not available:
     def configure_single_capture_analysis_liqbio(self, unique_capture):
         input_bam = self.get_capture_bam(unique_capture, umi=False)
         sample_str = compose_lib_capture_str(unique_capture)

@@ -39,18 +39,19 @@ def liqbio(ctx,tool,sample ):
                                          scratch=ctx.obj['scratch'],
                                          )
 
-    ctx.obj['pipeline'].runaws(tool)
-    #print('done')
+    step_status = ctx.obj['pipeline'].runaws(tool)
+    if not step_status:
+        sys.exit(1)
+
     # start main analysis
     ctx.obj['pipeline'].start()
-
-    #
     logging.info("Waiting for pipeline to finish.")
-    while ctx.obj['pipeline'].is_alive():
-        logging.debug("Waiting for LiqBioPipeline")
-        time.sleep(5)
+    #while ctx.obj['pipeline'].is_alive():
+    #    logging.debug("Waiting for LiqBioPipeline")
+    #    time.sleep(5)
 
     # # return_code from run_pipeline() will be != 0 if the pipeline fails
+    #sys.exit(ctx.obj['pipeline'].exitcode)
     sys.exit(ctx.obj['pipeline'].exitcode)
 
 
