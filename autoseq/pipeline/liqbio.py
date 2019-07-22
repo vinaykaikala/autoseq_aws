@@ -50,9 +50,8 @@ class LiqBioPipeline(ClinseqPipeline):
     def alignment_step(self):
         """Run steps related to skewer"""
         ###IF UMI FLAG is given
-        # self.configure_umi_processing()
+        self.configure_umi_processing()
         # self.configure_align_and_merge()
-
         return True
 
 
