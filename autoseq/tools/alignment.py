@@ -206,7 +206,7 @@ def align_se(pipeline, fq1_files, clinseq_barcode, ref, outdir, maxcores, remove
     bwa.is_intermediate = False
     #pipeline.add(bwa)
 
-    return bwa.output
+    return {'skewer': }bwa.output
 
 
 def align_pe(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, maxcores=1, remove_duplicates=True):

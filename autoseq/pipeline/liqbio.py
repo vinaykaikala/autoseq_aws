@@ -20,7 +20,8 @@ class LiqBioPipeline(ClinseqPipeline):
         self.default_job_params["vardict-min-num-reads"] = None
         self.default_job_params["vep-additional-options"] = " --pick --filter_common "
         self.step_to_run = {
-            "skewer" : self.skewer
+            "qc": self.qc_step,
+            "skewer": self.skewer
         }
 
 
@@ -34,10 +35,10 @@ class LiqBioPipeline(ClinseqPipeline):
 
         if umi:
             # Configure the umi processes from fastq to bam file:
-            self.configure_umi_processing()
+            self.configure_umi_processing() --> added in skewer_step()
         else:
             # Configure alignment and merging of fastq data for all clinseq barcodes:
-            self.configure_align_and_merge()
+            self.configure_align_and_merge() 
 
         # Configure all panel analyses:
         self.configure_panel_analyses()
@@ -52,7 +53,7 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_all_panel_qcs()
 
         # Configure fastq QCs:
-        self.configure_fastq_qcs()
+        self.configure_fastq_qcs() --> addes in qc_step()
 
         # Configure the low-pass whole genome analysis:
         self.configure_lowpass_analyses()
@@ -61,14 +62,21 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_all_lowpass_qcs()
 
         # Configure MultiQC:
-        self.configure_multi_qc()"""
+        self.configure_multi_qc() --> added in qc_step()"""
+    def qc_step(self):
+        # Configure fastq QCs:
+        print(self.configure_fastq_qcs())
+        # Configure MultiQC:
+        print(self.configure_multi_qc())
 
     def skewer(self):
         """Run steps related to skewer"""
 
         # Remove clinseq barcodes for which data is not available:
         self.check_sampledata()
-        self.configure_align_and_merge()
+        ###IF UMI FLAG is given
+        #self.configure_umi_processing()
+        #self.configure_align_and_merge()
 
         return True
 

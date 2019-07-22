@@ -476,7 +476,7 @@ class ClinseqPipeline(PypedreamPipeline):
 
         :return: List of qc output filenames.
         """
-
+        cmd_list = [] # collect all the commands to run by aws step function
         for clinseq_barcode in self.get_all_clinseq_barcodes():
             curr_fqs = reduce(lambda l1, l2: l1 + l2,
                               find_fastqs(clinseq_barcode, self.libdir))
@@ -488,7 +488,10 @@ class ClinseqPipeline(PypedreamPipeline):
                     self.outdir, clinseq_barcode)
                 fastqc.jobname = "fastqc-{}".format(clinseq_barcode)
                 self.qc_files.append(fastqc.output)
-                self.add(fastqc)
+                #self.add(fastqc)
+                cmd_list.append(fastqc.command())
+
+        return cmd_list
 
     def configure_align_and_merge(self):
         """
@@ -496,23 +499,20 @@ class ClinseqPipeline(PypedreamPipeline):
         and configure merging of the resulting bam files organised according to unique
         sample library captures (including "WGS" captures - i.e. no capture).
         """
-
         capture_to_barcodes = self.get_unique_capture_to_clinseq_barcodes()
-        print (capture_to_barcodes)
         for unique_capture in capture_to_barcodes.keys():
-            print(unique_capture)
-            #curr_bamfiles = []
-            #capture_kit = unique_capture.capture_kit_id
-            #for clinseq_barcode in capture_to_barcodes[unique_capture]:
-            #    curr_bamfiles.append(
-            #        align_library(self,
-            #                      fq1_files=find_fastqs(clinseq_barcode, self.libdir)[0],
-            #                      fq2_files=find_fastqs(clinseq_barcode, self.libdir)[1],
-            #                      clinseq_barcode=clinseq_barcode,
-            #                      ref=self.refdata['bwaIndex'],
-            #                      outdir= "{}/bams/{}".format(self.outdir, capture_kit),
-            #                      maxcores=self.maxcores,
-            #                      remove_duplicates=True))
+            curr_bamfiles = []
+            capture_kit = unique_capture.capture_kit_id
+            for clinseq_barcode in capture_to_barcodes[unique_capture]:
+                curr_bamfiles.append(
+                    align_library(self,
+                                  fq1_files=find_fastqs(clinseq_barcode, self.libdir)[0],
+                                  fq2_files=find_fastqs(clinseq_barcode, self.libdir)[1],
+                                  clinseq_barcode=clinseq_barcode,
+                                  ref=self.refdata['bwaIndex'],
+                                  outdir= "{}/bams/{}".format(self.outdir, capture_kit),
+                                  maxcores=self.maxcores,
+                                  remove_duplicates=True))
 
             #self.merge_and_rm_dup(unique_capture, curr_bamfiles)
 
@@ -1249,13 +1249,14 @@ class ClinseqPipeline(PypedreamPipeline):
         Configures MultiQC for this pipeline. self.qc_files must be fully populated
         in order for MultiQC to use all relevant input files.
         """
-
+        #cmd_list = []  # collect all the commands to run by aws step function
         multiqc = MultiQC()
         multiqc.input_files = self.qc_files
         multiqc.search_dir = self.outdir
         multiqc.output = "{}/multiqc/{}-multiqc".format(self.outdir, self.analysis_id)
         multiqc.jobname = "multiqc-{}".format(self.sampledata['sdid'])
-        self.add(multiqc)
+        #self.add(multiqc)
+        return [multiqc.command()]
 
     def get_coverage_bed(self, targets):
         """
