@@ -105,7 +105,7 @@ class Realignment(Job):
         # creating target intervals for indel realignment 
         # Param: -L can be added to specify the genomic region
         #target_creator_cmd = "java -jar /nfs/PROBIO/autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
-        target_creator_cmd = "java -jar /autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
+        target_creator_cmd = "java8 -jar /autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
                             " -T RealignerTargetCreator " + \
                             " -R " + self.reference_genome + \
                             " -known " + self.known_indel1 + \
@@ -115,7 +115,7 @@ class Realignment(Job):
                             " -I " + self.input_bam + \
                             " -o " + self.target_intervals 
 
-        realign_reads_cmd = "java -Xmx8G " + \
+        realign_reads_cmd = "java8 -Xmx8G " + \
                             required("-Djava.io.tmpdir=", self.scratch) + \
                             "-jar /autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
                             " -T IndelRealigner " + \
