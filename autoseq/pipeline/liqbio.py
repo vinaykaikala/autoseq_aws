@@ -24,7 +24,7 @@ class LiqBioPipeline(ClinseqPipeline):
         self.step_to_run = {
             "qc": self.qc_step,
             "alignment": self.alignment_step,
-            "varinat_calling": self.varinat_calling_step
+            "variant_calling": self.variant_calling_step
         }
 
 
@@ -59,7 +59,7 @@ class LiqBioPipeline(ClinseqPipeline):
         # self.configure_align_and_merge()
         return True
 
-    def varinat_calling_step(self):
+    def variant_calling_step(self):
         """Call the Variants for tumor normal samples"""
         #set required bamfiles
         self.configure_umi_processing(False)
