@@ -244,21 +244,21 @@ def align_pe(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, maxco
         skewer.is_intermediate = True
         fq1_trimmed.append(skewer.output1)
         fq2_trimmed.append(skewer.output2)
-        #pipeline.add(skewer)
+        pipeline.add(skewer)
 
     cat1 = Cat()
     cat1.input = fq1_trimmed
     cat1.output = outdir + "/skewer/{}-concatenated_1.fastq.gz".format(clinseq_barcode)
     cat1.jobname = "cat1/{}".format(clinseq_barcode)
     cat1.is_intermediate = True
-    #pipeline.add(cat1)
+    pipeline.add(cat1)
 
     cat2 = Cat()
     cat2.input = fq2_trimmed
     cat2.jobname = "cat2/{}".format(clinseq_barcode)
     cat2.output = outdir + "/skewer/{}-concatenated_2.fastq.gz".format(clinseq_barcode)
     cat2.is_intermediate = True
-    #pipeline.add(cat2)
+    pipeline.add(cat2)
 
     bwa = Bwa()
     bwa.input_fastq1 = cat1.output
@@ -277,11 +277,11 @@ def align_pe(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, maxco
     bwa.jobname = "bwa/{}".format(clinseq_barcode)
     bwa.scratch = pipeline.scratch
     bwa.is_intermediate = False
-    #pipeline.add(bwa)
+    pipeline.add(bwa)
 
     return bwa.output
 
-def fq_trimming(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, maxcores=1):
+def fq_trimming(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, maxcores=1, flag=True):
     fq1_abs = [normpath(x) for x in fq1_files]
     fq2_abs = [normpath(x) for x in fq2_files]
     logging.debug("Trimming {} and {}".format(fq1_abs, fq2_abs))
@@ -303,20 +303,23 @@ def fq_trimming(pipeline, fq1_files, fq2_files, clinseq_barcode, ref, outdir, ma
         skewer.is_intermediate = True
         fq1_trimmed.append(skewer.output1)
         fq2_trimmed.append(skewer.output2)
-        pipeline.add(skewer)
+        if flag:
+            pipeline.add(skewer)
 
     cat1 = Cat()
     cat1.input = fq1_trimmed
     cat1.output = outdir + "/skewer/{}-concatenated_1.fastq.gz".format(clinseq_barcode)
     cat1.jobname = "cat1/{}".format(clinseq_barcode)
     cat1.is_intermediate = True
-    pipeline.add(cat1)
+    if flag:
+        pipeline.add(cat1)
 
     cat2 = Cat()
     cat2.input = fq2_trimmed
     cat2.jobname = "cat2/{}".format(clinseq_barcode)
     cat2.output = outdir + "/skewer/{}-concatenated_2.fastq.gz".format(clinseq_barcode)
     cat2.is_intermediate = True
-    pipeline.add(cat2)
+    if flag:
+        pipeline.add(cat2)
 
     return cat1.output, cat2.output

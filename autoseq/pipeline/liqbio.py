@@ -23,7 +23,8 @@ class LiqBioPipeline(ClinseqPipeline):
         #Below dictionary will set the steps to run aws batch job with docker image (key: docker image name , value: function to add job).
         self.step_to_run = {
             "qc": self.qc_step,
-            "alignment": self.alignment_step
+            "alignment": self.alignment_step,
+            "varinat_calling": self.varinat_calling_step
         }
 
 
@@ -48,22 +49,31 @@ class LiqBioPipeline(ClinseqPipeline):
         return True
 
     def alignment_step(self):
-        """Run steps related to skewer"""
+        """Run steps related to alignment"""
         ###IF UMI FLAG is given
-        self.configure_umi_processing()
+        self.configure_umi_processing(True)
+        ####get the bam file corresponding to the specified unique_capture in this analysis and send it to next step.
+        #self.capture_to_results[unique_capture].umi_bamfile = bam --> referece in function set_capture_bam(): clinseq.py: line number 172 /
+        # configure_umi_processing(): line number: 278
+        #self.capture_to_results retun this value if aws batch send output ot step function (self.capture_to_results[unique_capture].umi_bamfile )
         # self.configure_align_and_merge()
         return True
 
-
+    def varinat_calling_step(self):
+        """Call the Variants for tumor normal samples"""
+        #set required bamfiles
+        self.configure_umi_processing(False)
+        print(self.capture_to_results)
+        return True
 
     """self.check_sampledata()
 
         if umi:
             # Configure the umi processes from fastq to bam file:
-            self.configure_umi_processing() --> added in skewer_step()
+            self.configure_umi_processing() --> added in alignment_step()
         else:
             # Configure alignment and merging of fastq data for all clinseq barcodes:
-            self.configure_align_and_merge() 
+            self.configure_align_and_merge() ---> need to added
 
         # Configure all panel analyses:
         self.configure_panel_analyses()
@@ -258,7 +268,7 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_purecn(normal_capture, cancer_capture, umi)
         self.configure_liqbio_cna(normal_capture, cancer_capture)
 
-    def configure_umi_processing(self):
+    def configure_umi_processing(self, mflag=True):
         # configure for UMI SNV calling pipeline
         #
         capture_to_barcodes = self.get_unique_capture_to_clinseq_barcodes()
@@ -271,31 +281,31 @@ class LiqBioPipeline(ClinseqPipeline):
                                   clinseq_barcode=clinseq_barcode,
                                   ref=self.refdata['bwaIndex'],
                                   outdir= "{}/bams/{}".format(self.outdir, capture_kit),
-                                  maxcores=self.maxcores)
+                                  maxcores=self.maxcores, flag=mflag)
             
             bam_file = self.configure_fastq_to_bam(fq_files=trimmed_fqfiles, 
                                                     clinseq_barcode=clinseq_barcode, 
-                                                    capture_kit=capture_kit)
+                                                    capture_kit=capture_kit, flag=mflag)
             realigned_bam = self.configure_alignment_with_umi(bamfile=bam_file, 
                                                     clinseq_barcode=clinseq_barcode, 
-                                                    capture_kit=capture_kit, jobname='1')
+                                                    capture_kit=capture_kit, jobname='1', flag=mflag)
             consensus_reads = self.configure_consensus_reads_calling(bam=realigned_bam, 
                                                     clinseq_barcode=clinseq_barcode,
-                                                    capture_kit=capture_kit)
+                                                    capture_kit=capture_kit, flag=mflag)
             realigned_bam2 = self.configure_alignment_with_umi(bamfile=consensus_reads, 
                                                     clinseq_barcode=clinseq_barcode, 
-                                                    capture_kit=capture_kit, jobname='2')
+                                                    capture_kit=capture_kit, jobname='2', flag=mflag)
             filtered_bam = self.configure_consensus_read_filter(bam=realigned_bam2 ,
                                                     clinseq_barcode=clinseq_barcode,
-                                                    capture_kit=capture_kit)
+                                                    capture_kit=capture_kit, flag=mflag)
             clip_overlap_bam = self.configure_clip_overlapping(bam=filtered_bam,
                                                     clinseq_barcode=clinseq_barcode,
-                                                    capture_kit=capture_kit)
-            mark_dups_bam = self.configure_markdups(bamfile=realigned_bam, unique_capture=unique_capture)
+                                                    capture_kit=capture_kit, flag=mflag)
+            mark_dups_bam = self.configure_markdups(bamfile=realigned_bam, unique_capture=unique_capture, flag=mflag)
 
             self.set_capture_bam(unique_capture, filtered_bam, self.umi)
 
-    def configure_alignment_with_umi(self, bamfile, clinseq_barcode, capture_kit, jobname):
+    def configure_alignment_with_umi(self, bamfile, clinseq_barcode, capture_kit, jobname, flag=True):
         # Map the reads with bwa and merge with the UMI tags (picard SamToFastq | bwa mem | picard MergeBamAlignment)
         align_unmap_bam = AlignUnmappedBam()
         align_unmap_bam.input_bam = bamfile
@@ -304,7 +314,8 @@ class LiqBioPipeline(ClinseqPipeline):
         align_unmap_bam.scratch = self.scratch
         align_unmap_bam.output_bam = "{}/bams/{}/{}.mapped-{}.bam".format(self.outdir, capture_kit, clinseq_barcode, jobname)
         align_unmap_bam.jobname = "alignment-of-unmapped-bam-"+ jobname + '-' + clinseq_barcode
-        self.add(align_unmap_bam)
+        if flag:
+            self.add(align_unmap_bam)
 
         targets = self.get_capture_name(capture_kit)
 
@@ -318,11 +329,12 @@ class LiqBioPipeline(ClinseqPipeline):
         realignment.known_indel2 = self.refdata['Mills_and_1KG_gold_standard']
         realignment.target_intervals = "{}/bams/{}/{}.intervals".format(self.outdir, capture_kit, clinseq_barcode)
         realignment.jobname = "realignment-" + jobname + '-' + clinseq_barcode
-        self.add(realignment)
+        if flag:
+            self.add(realignment)
 
         return realignment.output_bam
 
-    def configure_fastq_to_bam(self, fq_files, clinseq_barcode, capture_kit):
+    def configure_fastq_to_bam(self, fq_files, clinseq_barcode, capture_kit, flag=True):
         # Extract UMIs from trimmed fastq and store in RX tag of unmapped bam (fgbio FastqToBam)
         
         library = parse_prep_id(clinseq_barcode)
@@ -336,11 +348,12 @@ class LiqBioPipeline(ClinseqPipeline):
         fastq_to_bam.scratch = self.scratch
         fastq_to_bam.output_bam = "{}/bams/{}/{}.unmapped.bam".format(self.outdir, capture_kit, clinseq_barcode)
         fastq_to_bam.jobname = "fastq-to-bam" + '-' + clinseq_barcode
-        self.add(fastq_to_bam)
+        if flag:
+            self.add(fastq_to_bam)
 
         return fastq_to_bam.output_bam
 
-    def configure_consensus_reads_calling(self, bam,  clinseq_barcode, capture_kit):
+    def configure_consensus_reads_calling(self, bam,  clinseq_barcode, capture_kit, flag=True):
 
         group_reads = GroupReadsByUmi()
         group_reads.input_bam = bam
@@ -348,18 +361,20 @@ class LiqBioPipeline(ClinseqPipeline):
         group_reads.output_histogram = "{}/bams/{}/{}.grouped.bam.fs.txt".format(self.outdir, capture_kit, clinseq_barcode)
         group_reads.output_bam = "{}/bams/{}/{}.grouped.bam".format(self.outdir, capture_kit, clinseq_barcode)
         group_reads.jobname = "group-reads-by-umi" + '-' + clinseq_barcode
-        self.add(group_reads)
+        if flag:
+            self.add(group_reads)
 
         call_consensus_reads = CallDuplexConsensusReads()
         call_consensus_reads.input_bam = group_reads.output_bam
         call_consensus_reads.scratch = self.scratch
         call_consensus_reads.output_bam = "{}/bams/{}/{}.consensus.bam".format(self.outdir, capture_kit, clinseq_barcode)
         call_consensus_reads.jobname = "call-duplex-consensus-reads" + '-' + clinseq_barcode
-        self.add(call_consensus_reads)
+        if flag:
+            self.add(call_consensus_reads)
 
         return call_consensus_reads.output_bam
 
-    def configure_consensus_read_filter(self, bam, clinseq_barcode, capture_kit):
+    def configure_consensus_read_filter(self, bam, clinseq_barcode, capture_kit, flag=True):
 
         filter_con_reads = FilterConsensusReads()
         filter_con_reads.input_bam = bam
@@ -367,11 +382,12 @@ class LiqBioPipeline(ClinseqPipeline):
         filter_con_reads.reference_genome = self.refdata['reference_genome']
         filter_con_reads.output_bam = "{}/bams/{}/{}.consensus.filtered.bam".format(self.outdir, capture_kit, clinseq_barcode)
         filter_con_reads.jobname = "filter-consensus-reads-{}".format(clinseq_barcode)
-        self.add(filter_con_reads)
+        if flag:
+            self.add(filter_con_reads)
 
         return filter_con_reads.output_bam
 
-    def configure_clip_overlapping(self, bam, clinseq_barcode, capture_kit):
+    def configure_clip_overlapping(self, bam, clinseq_barcode, capture_kit, flag=True):
 
         clip_overlap_reads = ClipBam()
         clip_overlap_reads.input_bam = bam
@@ -380,7 +396,8 @@ class LiqBioPipeline(ClinseqPipeline):
         clip_overlap_reads.output_bam = "{}/bams/{}/{}.clip.overlapped.bam".format(self.outdir, capture_kit, clinseq_barcode)
         clip_overlap_reads.metrics_txt = "{}/qc/{}-clip_overlap_metrix.txt".format(self.outdir, clinseq_barcode)
         clip_overlap_reads.jobname = "clip-overlap-reads-{}".format(clinseq_barcode)
-        self.add(clip_overlap_reads)
+        if flag:
+            self.add(clip_overlap_reads)
 
         return clip_overlap_reads.output_bam
 

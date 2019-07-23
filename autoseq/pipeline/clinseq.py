@@ -446,7 +446,7 @@ class ClinseqPipeline(PypedreamPipeline):
         # Configure duplicate marking:
         self.configure_markdups(realignment.output_bam , unique_capture)
         
-    def configure_markdups(self, bamfile, unique_capture):
+    def configure_markdups(self, bamfile, unique_capture, flag=True):
 
         capture_str = compose_lib_capture_str(unique_capture)
 
@@ -458,7 +458,8 @@ class ClinseqPipeline(PypedreamPipeline):
         markdups = PicardMarkDuplicates(
             bamfile, mark_dups_bam_filename, mark_dups_metrics_filename)
         markdups.is_intermediate = False
-        self.add(markdups)
+        if flag:
+            self.add(markdups)
 
         # FIXME: Continue here: Need to fix naming of bam files and naming of the
         # sample in the bam header. Currently not sure how/where to fix this, and merge_bams.output_bam
