@@ -470,7 +470,7 @@ class InstallVep(Job):
 
 def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, normal_capture,
                           target_name, outdir, callers=['vardict','strelka','mutect2', 'varscan'],
-                          min_alt_frac=0.1, min_num_reads=None):
+                          min_alt_frac=0.1, min_num_reads=None, flag=True):
     """
     Configuring calling of somatic variants on a given pairing of cancer and normal bam files,
     using a set of specified algorithms.
@@ -505,7 +505,8 @@ def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, norm
         freebayes.scratch = pipeline.scratch
         freebayes.jobname = "freebayes-somatic/{}".format(cancer_capture_str)
         freebayes.output = "{}/variants/{}-{}.freebayes-somatic.vcf.gz".format(outdir, cancer_capture_str, normal_capture_str)
-        pipeline.add(freebayes)
+        if flag:
+            pipeline.add(freebayes)
         d['freebayes'] = freebayes.output
 
     capture_name = pipeline.get_capture_name(cancer_capture.capture_kit_id)
@@ -523,7 +524,8 @@ def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, norm
                           )
 
         vardict.jobname = "vardict/{}".format(cancer_capture_str)
-        pipeline.add(vardict)
+        if flag:
+            pipeline.add(vardict)
         d['vardict'] = vardict.output
 
 
@@ -537,7 +539,8 @@ def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, norm
                           output_indels_vcf= "{}/variants/{}-{}-strelka-somatic/results/variants/somatic.passed.indels.vcf.gz".format(outdir, normal_capture_str, cancer_capture_str),
                           )
         strelka_somatic.jobname = "strelka-somatic-workflow/{}".format(cancer_capture_str)
-        pipeline.add(strelka_somatic)
+        if flag:
+            pipeline.add(strelka_somatic)
         d['strelka_snvs'] = strelka_somatic.output_snvs_vcf
         d['strelka_indels'] = strelka_somatic.output_indels_vcf
 
@@ -551,7 +554,8 @@ def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, norm
                           output_filtered="{}/variants/mutect/{}-{}-gatk-mutect-somatic-filtered.vcf.gz".format(outdir, normal_capture_str, cancer_capture_str)
                           )
         mutect_somatic.jobname = "mutect2-somatic/{}".format(cancer_capture_str)
-        pipeline.add(mutect_somatic)
+        if flag:
+            pipeline.add(mutect_somatic)
         d['mutect2'] = mutect_somatic.output_filtered
 
     if 'varscan' in callers:
@@ -567,7 +571,8 @@ def call_somatic_variants(pipeline, cancer_bam, normal_bam, cancer_capture, norm
                             output_somatic_indel="{}/variants/varscan/{}-{}-varscan.indel.Somatic.vcf".format(outdir, normal_capture_str, cancer_capture_str),
                             )
         varscan_somatic.jobname = "varscan-somatic/{}".format(cancer_capture_str)
-        pipeline.add(varscan_somatic)
+        if flag:
+            pipeline.add(varscan_somatic)
         d['varscan_snv'] = varscan_somatic.output_somatic_snv
         d['varscan_indel'] = varscan_somatic.output_somatic_indel
 

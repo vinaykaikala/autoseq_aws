@@ -5,7 +5,8 @@ from autoseq.tools.structuralvariants import Svcaller, Sveffect, MantaSomaticSV,
 from autoseq.tools.umi import *
 from autoseq.tools.alignment import fq_trimming, Realignment
 from autoseq.util.library import find_fastqs
-
+from autoseq.tools.variantcalling import call_somatic_variants, SomaticSeq
+from collections import defaultdict
 __author__ = 'thowhi'
 
 
@@ -30,6 +31,7 @@ class LiqBioPipeline(ClinseqPipeline):
         self.maxcores = maxcores
         self.scratch = scratch
         self.kwargs = kwargs
+        self.somatic_merge_vcf = defaultdict(dict)
 
         #Below dictionary will set the steps to run aws batch job with docker image (key: docker image name , value: function to add job).
         self.step_to_run = {
@@ -85,18 +87,24 @@ class LiqBioPipeline(ClinseqPipeline):
         return True
 
     def somatic_variant_vardict_step(self):
+        self.configure_somatic_varinat_callers('vardict', True)
         return True
 
     def somatic_variant_strelka_step(self):
+        self.configure_somatic_varinat_callers('strelka', True)
         return True
 
     def somatic_variant_mutect2_step(self):
+        self.configure_somatic_varinat_callers('mutect2', True)
         return True
 
     def somatic_variant_varscan_step(self):
+        self.configure_somatic_varinat_callers('varscan', True)
         return True
 
-    def somatic_variant_step(self, tool):
+    def somatic_variant_merge_step(self):
+        """Merge all the somatic varints using GATK3.5 which requires java version 8"""
+        self.configure_somaticseq_merge_variants(True)
         return True
 
     def initial_step(self):
@@ -106,6 +114,9 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_umi_processing(False)
         self.configure_panel_analyses_cnvkit(False)
         self.configure_panel_analyses_normal_germline(False)
+        for caller in ['vardict', 'strelka', 'mutect2', 'varscan']:
+            self.configure_somatic_varinat_callers(caller, False)
+        self.configure_somaticseq_merge_variants(False)
 
         #Configure all panel analyses:
         #self.configure_panel_analyses() #Run Cnvkit
@@ -162,7 +173,7 @@ class LiqBioPipeline(ClinseqPipeline):
     def configure_panel_analyses_normal_germline(self, mflag=True):
         # Configure a separate group of analyses for each unique normal library capture:
         for normal_capture in self.get_mapped_captures_normal():
-            #self.configure_panel_analysis_with_normal(normal_capture)
+            #self.configure_panel_analysis_with_normal(normal_capture)d
             if normal_capture.sample_type != "N":
                 raise ValueError("Invalid input capture: " + compose_sample_str(normal_capture))
 
@@ -172,7 +183,9 @@ class LiqBioPipeline(ClinseqPipeline):
 
         return True
 
-    def configure_panel_analyses_normal_vs_cancer_somatic(self, mflag=True):
+    def configure_panel_analyses_normal_vs_cancer_somatic(self):
+
+        normal_cancer_capture_pair = []
         for normal_capture in self.get_mapped_captures_normal():
             # For each unique cancer library capture, configure a comparative analysis against
             # this normal capture:
@@ -181,21 +194,76 @@ class LiqBioPipeline(ClinseqPipeline):
                 raise ValueError("Invalid input capture: " + compose_sample_str(normal_capture))
 
             for cancer_capture in self.get_mapped_captures_cancer():
+                normal_cancer_capture_pair.append( (normal_capture, cancer_capture) )
 
                 # self.configure_panel_analysis_cancer_vs_normal(
                 #    normal_capture, cancer_capture) below code is same as the in this function
 
-                self.configure_somatic_calling(normal_capture, cancer_capture)
-                if self.vep_data_is_available():
-                    self.configure_vep(normal_capture, cancer_capture)
-                self.configure_vcf_add_sample(normal_capture, cancer_capture)
-                self.configure_make_allelic_fraction_track(normal_capture, cancer_capture)
-                self.configure_msi_sensor(normal_capture, cancer_capture)
-                # self.configure_hz_conc(normal_capture, cancer_capture)
-                self.configure_contamination_estimate(normal_capture, cancer_capture)
+                #self.configure_somatic_calling(normal_capture, cancer_capture)
+
+                #if self.vep_data_is_available():
+                #    self.configure_vep(normal_capture, cancer_capture)
+                #self.configure_vcf_add_sample(normal_capture, cancer_capture)
+                #self.configure_make_allelic_fraction_track(normal_capture, cancer_capture)
+                #self.configure_msi_sensor(normal_capture, cancer_capture)
+                ## self.configure_hz_conc(normal_capture, cancer_capture)
+
+        return normal_cancer_capture_pair
+
+    def configure_somatic_varinat_callers(self, tool, mflag=True):
+        """Calls each somatic varinat caller"""
+
+        for normal_capture, cancer_capture  in self.configure_panel_analyses_normal_vs_cancer_somatic():
+            cancer_bam = self.get_capture_bam(cancer_capture, self.umi)
+            normal_bam = self.get_capture_bam(normal_capture, self.umi)
+            target_name = self.get_capture_name(cancer_capture.capture_kit_id)
+            somatic_variants = call_somatic_variants(
+                self, cancer_bam=cancer_bam, normal_bam=normal_bam,
+                cancer_capture=cancer_capture, normal_capture=normal_capture,
+                target_name=target_name,
+                outdir=self.outdir, callers=[tool],                                                     #callers=['vardict', 'strelka', 'mutect2', 'varscan'],
+                min_alt_frac=self.get_job_param('vardict-min-alt-frac'),
+                min_num_reads=self.get_job_param('vardict-min-num-reads'), flag=mflag)
+
+            self.somatic_merge_vcf[(normal_capture, cancer_capture )].update(somatic_variants)
+
+        return True
+    def configure_somaticseq_merge_variants(self, flag=True):
+        """Merge the all variants emitted from vardict, strelka, mutect2, varscan"""
+        for normal_capture, cancer_capture in self.configure_panel_analyses_normal_vs_cancer_somatic():
+            cancer_bam = self.get_capture_bam(cancer_capture, self.umi)
+            normal_bam = self.get_capture_bam(normal_capture, self.umi)
+            normal_capture_str = compose_lib_capture_str(normal_capture)
+            cancer_capture_str = compose_lib_capture_str(cancer_capture)
+            somatic_seq = SomaticSeq()
+            somatic_seq.input_normal = normal_bam
+            somatic_seq.input_tumor = cancer_bam
+            somatic_seq.reference_sequence = self.refdata['reference_genome']
+            somatic_seq.input_mutect_vcf = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['mutect2']
+            somatic_seq.input_varscan_snv = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['varscan_snv']
+            somatic_seq.input_varscan_indel = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['varscan_indel']
+            somatic_seq.input_vardict_vcf = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['vardict']
+            somatic_seq.input_strelka_snv = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['strelka_snvs']
+            somatic_seq.input_strelka_indel = self.somatic_merge_vcf[(normal_capture, cancer_capture )]['strelka_indels']
+            somatic_seq.out_dir = "{}/variants/{}-{}-somatic-seq".format(self.outdir, normal_capture_str,
+                                                                         cancer_capture_str)
+            somatic_seq.out_snv = "{}/variants/{}-{}-somatic-seq/Consensus.sSNV.vcf".format(self.outdir,
+                                                                                            normal_capture_str,
+                                                                                            cancer_capture_str)
+            somatic_seq.out_indel = "{}/variants/{}-{}-somatic-seq/Consensus.sINDEL.vcf".format(self.outdir,
+                                                                                                normal_capture_str,
+                                                                                                cancer_capture_str)
+            somatic_seq.output_vcf = "{}/variants/{}-{}-all.somatic.vcf.gz".format(self.outdir, normal_capture_str,
+                                                                                   cancer_capture_str)
+            if flag:
+                self.add(somatic_seq)
+
+            self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].somatic_vcf = \
+                somatic_seq.output_vcf
 
 
         return True
+
 
     # Remove clinseq barcodes for which data is not available:
     def configure_single_capture_analysis_liqbio(self, unique_capture):
