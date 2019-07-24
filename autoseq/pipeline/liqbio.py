@@ -20,18 +20,29 @@ class LiqBioPipeline(ClinseqPipeline):
         self.default_job_params["vardict-min-num-reads"] = None
         self.default_job_params["vep-additional-options"] = " --pick --filter_common "
 
+        #Set initial data
+        self.sampledata = sampledata
+        self.refdata = refdata
+        self.job_params = job_params
+        self.outdir = outdir
+        self.libdir = libdir
+        self.umi = umi
+        self.maxcores = maxcores
+        self.scratch = scratch
+        self.kwargs = kwargs
+
         #Below dictionary will set the steps to run aws batch job with docker image (key: docker image name , value: function to add job).
         self.step_to_run = {
             "qc": self.qc_step,
             "alignment": self.alignment_step,
-            "variant_calling": self.variant_calling_step
+            "cnvkit": self.cnvkit_step
         }
 
 
     def runaws(self,tool):
         """Set the jobs to run by aws batch"""
         #run common steps which will initalize the sef variables
-        self.check_sampledata()
+        self.initial_step()
         current_step = self.step_to_run.get(tool, False)
         if current_step:
             current_step()
@@ -59,11 +70,31 @@ class LiqBioPipeline(ClinseqPipeline):
         # self.configure_align_and_merge()
         return True
 
-    def variant_calling_step(self):
-        """Call the Variants for tumor normal samples"""
-        #set required bamfiles
+    def cnvkit_step(self):
+        #self.configure_umi_processing(False)
+        self.configure_panel_analyses_cnvkit(True)
+        return True
+
+    def germline_variant_step(self):
+        self.configure_panel_analyses_normal_germline(True)
+        return True
+
+    def somatic_variant_step(self):
+        return True
+
+    def initial_step(self):
+        """Set the all class vaibales required for processing the liqbio pipeline"""
+        #set required bamfiles and other object variable
+        self.check_sampledata()
         self.configure_umi_processing(False)
-        print(self.capture_to_results)
+        self.configure_panel_analyses_cnvkit(False)
+        self.configure_panel_analyses_normal_germline(False)
+
+        #Configure all panel analyses:
+        #self.configure_panel_analyses() #Run Cnvkit
+        #self.configure_panel_analyses_cnvkit() # splitted the  configure_panel_analyses() function into 1.cnvkit and germline and somatic
+        # Configure liqbio-specific panel analyses:
+        #self.configure_panel_analyses_liqbio(self.umi)
         return True
 
     """self.check_sampledata()
@@ -99,6 +130,45 @@ class LiqBioPipeline(ClinseqPipeline):
         # Configure MultiQC:
         self.configure_multi_qc() --> added in qc_step()
     """
+    def configure_panel_analyses_cnvkit(self, mflag=True):
+        """
+        Configure generic analyses of all panel data for this clinseq pipeline,
+        assuming that alignment and bam file merging has been performed.
+        """
+        # Configure analyses to be run on all unique panel captures individually:
+        for unique_capture in self.get_mapped_captures_no_wgs():
+            self.configure_single_capture_analysis(unique_capture, flag=mflag)
+            self.configure_make_cnvkit_tracks(unique_capture, flag=mflag)
+
+        return True
+
+    def configure_panel_analyses_normal_germline(self, mflag=True):
+        # Configure a separate group of analyses for each unique normal library capture:
+        for normal_capture in self.get_mapped_captures_normal():
+            #self.configure_panel_analysis_with_normal(normal_capture)
+            if normal_capture.sample_type != "N":
+                raise ValueError("Invalid input capture: " + compose_sample_str(normal_capture))
+
+            normal_bam = self.get_capture_bam(normal_capture, self.umi)
+            # Configure germline variant calling:
+            self.call_germline_variants(normal_capture, normal_bam, flag=mflag)
+
+        return True
+
+    def configure_panel_analyses_normal_vs_cancer_somatic(self, mflag=True):
+        for normal_capture in self.get_mapped_captures_normal():
+            # For each unique cancer library capture, configure a comparative analysis against
+            # this normal capture:
+
+            if normal_capture.sample_type != "N":
+                raise ValueError("Invalid input capture: " + compose_sample_str(normal_capture))
+
+            for cancer_capture in self.get_mapped_captures_cancer():
+                self.configure_panel_analysis_cancer_vs_normal(
+                    normal_capture, cancer_capture)
+
+
+        return True
 
     # Remove clinseq barcodes for which data is not available:
     def configure_single_capture_analysis_liqbio(self, unique_capture):

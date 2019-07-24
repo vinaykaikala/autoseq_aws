@@ -517,7 +517,7 @@ class ClinseqPipeline(PypedreamPipeline):
 
             #self.merge_and_rm_dup(unique_capture, curr_bamfiles)
 
-    def call_germline_variants(self, normal_capture, bam):
+    def call_germline_variants(self, normal_capture, bam, flag=True):
         """
         Configure calling of germline variants for a normal sample library capture,
         and configure VEP if specified in the analysis.
@@ -538,7 +538,8 @@ class ClinseqPipeline(PypedreamPipeline):
         haplotypecaller.output = "{}/variants/haplotypecaller/{}.haplotypecaller-germline.vcf.gz".format(self.outdir, capture_str)
         haplotypecaller.jobname = "gatk-haplotypecaller-germline-{}".format(capture_str)
 
-        self.add(haplotypecaller)
+        if flag:
+            self.add(haplotypecaller)
 
 
         strelka_germline = StrelkaGermline(input_bam=bam,
@@ -550,7 +551,8 @@ class ClinseqPipeline(PypedreamPipeline):
                           )
         strelka_germline.jobname = "strelka-germline-workflow/{}".format(capture_str)
 
-        self.add(strelka_germline)
+        if flag:
+            self.add(strelka_germline)
 
         merge_germline_vcfs = MergeVCF() 
         merge_germline_vcfs.input_vcf_hc = haplotypecaller.output
@@ -559,7 +561,8 @@ class ClinseqPipeline(PypedreamPipeline):
         merge_germline_vcfs.output_vcf = "{}/variants/{}-all.germline.vcf.gz".format(self.outdir, capture_str)
         merge_germline_vcfs.jobname = "germline-vcf-merging/{}".format(capture_str)
 
-        self.add(merge_germline_vcfs)
+        if flag:
+            self.add(merge_germline_vcfs)
 
         vepped_vcf = None
         if self.vep_data_is_available():
@@ -571,7 +574,8 @@ class ClinseqPipeline(PypedreamPipeline):
             vep_germline_vcf.brca_exchange_vcf = self.refdata['brca_exchange']
             vep_germline_vcf.output_vcf = "{}/variants/{}.all.germline.vep.vcf".format(self.outdir, capture_str)
             vep_germline_vcf.jobname = "vep-merged-germline-vcf-{}".format(capture_str)
-            self.add(vep_germline_vcf)
+            if flag:
+                self.add(vep_germline_vcf)
             vepped_vcf = vep_germline_vcf.output_vcf
 
         generate_igvnav_input = GenerateIGVNavInput()
@@ -579,9 +583,10 @@ class ClinseqPipeline(PypedreamPipeline):
         generate_igvnav_input.oncokb_db = self.refdata['oncokb']
         generate_igvnav_input.vcftype = "germline"
         generate_igvnav_input.output = "{}/{}-igvnav-input.txt".format(self.outdir, capture_str)
-        generate_igvnav_input.jobname = "IGVNavInput-file-generation-{}".format(capture_str) 
+        generate_igvnav_input.jobname = "IGVNavInput-file-generation-{}".format(capture_str)
 
-        self.add(generate_igvnav_input)
+        if flag:
+            self.add(generate_igvnav_input)
 
         self.set_germline_vcf(normal_capture, (merge_germline_vcfs.output_vcf, vepped_vcf))
             
@@ -603,7 +608,7 @@ class ClinseqPipeline(PypedreamPipeline):
             self.configure_panel_analysis_cancer_vs_normal(
                 normal_capture, cancer_capture)
 
-    def configure_make_cnvkit_tracks(self, unique_capture):
+    def configure_make_cnvkit_tracks(self, unique_capture, flag=True):
         input_cnr = self.capture_to_results[unique_capture].cnr
         input_cns = self.capture_to_results[unique_capture].cns
 
@@ -617,7 +622,8 @@ class ClinseqPipeline(PypedreamPipeline):
                 self.outdir, sample_str)
             make_cnvkit_tracks.output_segments_bedgraph = "{}/cnv/{}_segments.bedGraph".format(
                 self.outdir, sample_str)
-            self.add(make_cnvkit_tracks)
+            if flag:
+                self.add(make_cnvkit_tracks)
 
     def configure_fix_cnvkit(self, unique_capture, cnr, cns, cnvkit_fix_filename):
         """
@@ -642,7 +648,7 @@ class ClinseqPipeline(PypedreamPipeline):
 
         self.add(cnvkit_fix)
 
-    def configure_single_capture_analysis(self, unique_capture):
+    def configure_single_capture_analysis(self, unique_capture, flag=True):
         """
         Configure all general analyses to perform given a single sample library capture.
         In UMI pipeline, CNVkit should be analyzed with normal bam file
@@ -693,13 +699,16 @@ class ClinseqPipeline(PypedreamPipeline):
                 pass
 
 
-            self.add(cnvkit)
+
+            if flag:
+                self.add(cnvkit)
 
             # Configure conversion of CNV kit output to seg format:
             seg_filename = "{}/cnv/{}.seg".format(
                 self.outdir, sample_str)
             cns2seg = Cns2Seg(self.capture_to_results[unique_capture].cns, seg_filename)
-            self.add(cns2seg)
+            if flag:
+                self.add(cns2seg)
 
             self.set_capture_seg(unique_capture, cns2seg.output_seg)
 

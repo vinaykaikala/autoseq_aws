@@ -179,7 +179,7 @@ def align_se(pipeline, fq1_files, clinseq_barcode, ref, outdir, maxcores, remove
         skewer.scratch = pipeline.scratch
         skewer.is_intermediate = True
         fq1_trimmed.append(skewer.output1)
-        #pipeline.add(skewer)
+        pipeline.add(skewer)
 
 
     cat1 = Cat()
@@ -187,7 +187,7 @@ def align_se(pipeline, fq1_files, clinseq_barcode, ref, outdir, maxcores, remove
     cat1.output = outdir + "/skewer/{}_1.fastq.gz".format(clinseq_barcode)
     cat1.jobname = "cat/{}".format(clinseq_barcode)
     cat1.is_intermediate = False
-    #pipeline.add(cat1)
+    pipeline.add(cat1)
 
     bwa = Bwa()
     bwa.input_fastq1 = cat1.output
@@ -205,7 +205,7 @@ def align_se(pipeline, fq1_files, clinseq_barcode, ref, outdir, maxcores, remove
     bwa.scratch = pipeline.scratch
     bwa.jobname = "bwa/{}".format(clinseq_barcode)
     bwa.is_intermediate = False
-    #pipeline.add(bwa)
+    pipeline.add(bwa)
 
     return bwa.output
 
