@@ -36,15 +36,19 @@ class LiqBioPipeline(ClinseqPipeline):
             "qc": self.qc_step,   #docker: base
             "alignment": self.alignment_step,   #docker: aligner
             "cnvkit": self.cnvkit_step,         #docker: variants
-            "germline": self.germline_variant_step, #docker: variants
+            "germline_variant": self.germline_variant_step, #docker: variants
+            "somatic_vardict": self.somatic_variant_vardict_step,
+            "somatic_strelka": self.somatic_variant_strelka_step,
+            "somatic_mutect2": self.somatic_variant_mutect2_step,
+            "somatic_varscan": self.somatic_variant_varscan_step,
         }
 
 
-    def runaws(self,tool):
+    def runaws(self,step):
         """Set the jobs to run by aws batch"""
         #run common steps which will initalize the sef variables
         self.initial_step()
-        current_step = self.step_to_run.get(tool, False)
+        current_step = self.step_to_run.get(step, False)
         if current_step:
             current_step()
             return True
@@ -80,7 +84,19 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_panel_analyses_normal_germline(True)
         return True
 
-    def somatic_variant_step(self):
+    def somatic_variant_vardict_step(self):
+        return True
+
+    def somatic_variant_strelka_step(self):
+        return True
+
+    def somatic_variant_mutect2_step(self):
+        return True
+
+    def somatic_variant_varscan_step(self):
+        return True
+
+    def somatic_variant_step(self, tool):
         return True
 
     def initial_step(self):
