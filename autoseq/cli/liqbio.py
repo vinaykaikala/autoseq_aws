@@ -12,10 +12,10 @@ from autoseq.util.path import mkdir
 
 
 @click.command()
-@click.option('--tool', required=True, help="Tool name to run the step")
+@click.option('--step', required=True, help="Tool name to run the step")
 @click.argument('sample', type=click.File('r'))
 @click.pass_context
-def liqbio(ctx,tool,sample ):
+def liqbio(ctx, step, sample ):
 
     logging.info("Running Liquid Biopsy pipeline")
     logging.info("Sample is {}".format(sample))
@@ -39,9 +39,9 @@ def liqbio(ctx,tool,sample ):
                                          scratch=ctx.obj['scratch'],
                                          )
 
-    step_status = ctx.obj['pipeline'].runaws(tool)
+    step_status = ctx.obj['pipeline'].runaws(step)
     if not step_status:
-        logging.info("No Step configured with step name: " + tool + ' check step_to_run dict to fix error')
+        logging.info("No Step configured with step name: " + step + ' check step_to_run dict to fix error')
         sys.exit(400)
 
     # start main analysis
