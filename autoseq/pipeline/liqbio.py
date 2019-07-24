@@ -33,9 +33,10 @@ class LiqBioPipeline(ClinseqPipeline):
 
         #Below dictionary will set the steps to run aws batch job with docker image (key: docker image name , value: function to add job).
         self.step_to_run = {
-            "qc": self.qc_step,
-            "alignment": self.alignment_step,
-            "cnvkit": self.cnvkit_step
+            "qc": self.qc_step,   #docker: base
+            "alignment": self.alignment_step,   #docker: aligner
+            "cnvkit": self.cnvkit_step,         #docker: variants
+            "germline": self.germline_variant_step, #docker: variants
         }
 
 
@@ -164,8 +165,18 @@ class LiqBioPipeline(ClinseqPipeline):
                 raise ValueError("Invalid input capture: " + compose_sample_str(normal_capture))
 
             for cancer_capture in self.get_mapped_captures_cancer():
-                self.configure_panel_analysis_cancer_vs_normal(
-                    normal_capture, cancer_capture)
+
+                # self.configure_panel_analysis_cancer_vs_normal(
+                #    normal_capture, cancer_capture) below code is same as the in this function
+
+                self.configure_somatic_calling(normal_capture, cancer_capture)
+                if self.vep_data_is_available():
+                    self.configure_vep(normal_capture, cancer_capture)
+                self.configure_vcf_add_sample(normal_capture, cancer_capture)
+                self.configure_make_allelic_fraction_track(normal_capture, cancer_capture)
+                self.configure_msi_sensor(normal_capture, cancer_capture)
+                # self.configure_hz_conc(normal_capture, cancer_capture)
+                self.configure_contamination_estimate(normal_capture, cancer_capture)
 
 
         return True
