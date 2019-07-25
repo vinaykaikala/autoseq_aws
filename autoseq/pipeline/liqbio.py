@@ -39,10 +39,11 @@ class LiqBioPipeline(ClinseqPipeline):
             "alignment": self.alignment_step,   #docker: aligner
             "cnvkit": self.cnvkit_step,         #docker: variants
             "germline_variant": self.germline_variant_step, #docker: variants
-            "somatic_vardict": self.somatic_variant_vardict_step,
-            "somatic_strelka": self.somatic_variant_strelka_step,
-            "somatic_mutect2": self.somatic_variant_mutect2_step,
-            "somatic_varscan": self.somatic_variant_varscan_step,
+            "somatic_vardict": self.somatic_variant_vardict_step,  #docker: variants # tested working
+            "somatic_strelka": self.somatic_variant_strelka_step,   #docker: variants #tested working
+            "somatic_mutect2": self.somatic_variant_mutect2_step,   #docker: variants #tested working
+            "somatic_varscan": self.somatic_variant_varscan_step,   #docker: variants #tested working
+            "somatic_variant_merge": self.somatic_variant_merge_step
         }
 
 
