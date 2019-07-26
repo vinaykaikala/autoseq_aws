@@ -309,7 +309,7 @@ class SomaticSeq(Job):
 
     deactivate_ssenv = "source deactivate"
 
-    merge_vcf = "java -jar /nfs/PROBIO/autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
+    merge_vcf = "java8 -jar /nfs/PROBIO/autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
                 " -T CombineVariants " + \
                 " -R " + self.reference_sequence + \
                 " --variant " + self.out_snv + \
