@@ -44,7 +44,7 @@ class LiqBioPipeline(ClinseqPipeline):
             "somatic_mutect2": self.somatic_variant_mutect2_step,   #docker: variants #tested working
             "somatic_varscan": self.somatic_variant_varscan_step,   #docker: variants #tested working
             "somatic_variant_merge": self.somatic_variant_merge_step, #docker: somaticseq #tested working
-            "vep": self.vep_step,
+            "vep": self.vep_step, #docker : vep #tested
             "msi" : self.msi_sensor_step
         }
 
@@ -131,7 +131,7 @@ class LiqBioPipeline(ClinseqPipeline):
             self.configure_somatic_varinat_callers(caller, False)
         self.configure_somaticseq_merge_variants(False)
         self.configure_vep_step(False)
-        self.configure_msi_sensor_step(False)
+        #self.configure_msi_sensor_step(False)
         return True
 
     """self.check_sampledata()
