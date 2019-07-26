@@ -849,7 +849,7 @@ class ClinseqPipeline(PypedreamPipeline):
         self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].somatic_vcf = \
             somatic_seq.output_vcf
 
-    def configure_vep(self, normal_capture, cancer_capture):
+    def configure_vep(self, normal_capture, cancer_capture, flag=True):
         if not self.vep_data_is_available():
             raise ValueError("Invalid call to configure_vep: No vep data available.")
 
@@ -868,7 +868,8 @@ class ClinseqPipeline(PypedreamPipeline):
             self.outdir, normal_capture_str, cancer_capture_str)
         vep.jobname = "vep-merged-somatic-vcf/{}".format(cancer_capture_str)
         vep.additional_options = self.get_job_param("vep-additional-options")
-        self.add(vep)
+        if flag:
+            self.add(vep)
         self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].vepped_vcf = \
             vep.output_vcf
 
@@ -878,10 +879,10 @@ class ClinseqPipeline(PypedreamPipeline):
         generate_igvnav_input.vcftype = "somatic"
         generate_igvnav_input.output = "{}/{}-{}-igvnav-input.txt".format(self.outdir, normal_capture_str, cancer_capture_str)
         generate_igvnav_input.jobname = "IGVNavInput-file-generation-{}-{}".format(normal_capture_str, cancer_capture_str) 
+        if flag:
+            self.add(generate_igvnav_input)
 
-        self.add(generate_igvnav_input)
-
-    def configure_make_allelic_fraction_track(self, normal_capture, cancer_capture):
+    def configure_make_allelic_fraction_track(self, normal_capture, cancer_capture, flag=True):
         """
         Configure a small job for converting the germline variant somatic allelic fraction
         information into tracks for displaying in IGV.
@@ -898,9 +899,10 @@ class ClinseqPipeline(PypedreamPipeline):
         make_allelic_fraction_track.output_bedgraph = \
             "{}/variants/{}-and-{}.germline-variants-somatic-afs.bedGraph".format(
             self.outdir, normal_capture_str, cancer_capture_str)
-        self.add(make_allelic_fraction_track)
+        if flag:
+            self.add(make_allelic_fraction_track)
 
-    def configure_vcf_add_sample(self, normal_capture, cancer_capture):
+    def configure_vcf_add_sample(self, normal_capture, cancer_capture, flag=True):
         """
         Configure VCF updating in this pipeline, for a specified pairing
         of normal and cancer library capture events. 
@@ -921,11 +923,12 @@ class ClinseqPipeline(PypedreamPipeline):
         vcfaddsample.output = "{}/variants/{}-and-{}.germline-variants-with-somatic-afs.vcf.gz".format(
             self.outdir, normal_capture_str, cancer_capture_str)
         vcfaddsample.jobname = "vcf-add-sample-{}".format(cancer_capture_str)
-        self.add(vcfaddsample)
+        if flag:
+            self.add(vcfaddsample)
         self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].vcf_addsample_output = \
             vcfaddsample.output
 
-    def configure_msi_sensor(self, normal_capture, cancer_capture):
+    def configure_msi_sensor(self, normal_capture, cancer_capture, flag=True):
         """
         Configure MSI sensor in this pipeline, for a specified pairing
         of normal and cancer library capture events. 
@@ -948,7 +951,8 @@ class ClinseqPipeline(PypedreamPipeline):
         msisensor.jobname = "msisensor-{}-{}".format(normal_capture_str, cancer_capture_str)
         self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].msi_output = \
             msisensor.output
-        self.add(msisensor)
+        if flag:
+            self.add(msisensor)
 
     def configure_msings(self, cancer_capture):
         """

@@ -307,8 +307,8 @@ class SomaticSeq(Job):
                   " --strelka-snv " + self.input_strelka_snv + \
                   " --strelka-indel " + self.input_strelka_indel
 
-    deactivate_ssenv = "source deactivate"
-
+    deactivate_ssenv = "conda deactivate"
+    #set to java8 due to dependency
     merge_vcf = "java8 -jar /nfs/PROBIO/autoseq-scripts/GenomeAnalysisTK-3.5.jar " + \
                 " -T CombineVariants " + \
                 " -R " + self.reference_sequence + \

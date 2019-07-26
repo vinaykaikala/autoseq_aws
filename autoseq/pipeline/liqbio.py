@@ -43,7 +43,9 @@ class LiqBioPipeline(ClinseqPipeline):
             "somatic_strelka": self.somatic_variant_strelka_step,   #docker: variants #tested working
             "somatic_mutect2": self.somatic_variant_mutect2_step,   #docker: variants #tested working
             "somatic_varscan": self.somatic_variant_varscan_step,   #docker: variants #tested working
-            "somatic_variant_merge": self.somatic_variant_merge_step
+            "somatic_variant_merge": self.somatic_variant_merge_step, #docker: somaticseq #tested working
+            "vep": self.vep_step,
+            "msi" : self.msi_sensor_step
         }
 
 
@@ -108,6 +110,16 @@ class LiqBioPipeline(ClinseqPipeline):
         self.configure_somaticseq_merge_variants(True)
         return True
 
+    def vep_step(self):
+        """Assign the effect for each variant from somaticseq"""
+        self.configure_vep_step(True)
+
+    def msi_sensor_step(self):
+        """msi tool"""
+        self.configure_msi_sensor_step(True)
+        return True
+
+
     def initial_step(self):
         """Set the all class vaibales required for processing the liqbio pipeline"""
         #set required bamfiles and other object variable
@@ -118,12 +130,8 @@ class LiqBioPipeline(ClinseqPipeline):
         for caller in ['vardict', 'strelka', 'mutect2', 'varscan']:
             self.configure_somatic_varinat_callers(caller, False)
         self.configure_somaticseq_merge_variants(False)
-
-        #Configure all panel analyses:
-        #self.configure_panel_analyses() #Run Cnvkit
-        #self.configure_panel_analyses_cnvkit() # splitted the  configure_panel_analyses() function into 1.cnvkit and germline and somatic
-        # Configure liqbio-specific panel analyses:
-        #self.configure_panel_analyses_liqbio(self.umi)
+        self.configure_vep_step(False)
+        self.configure_msi_sensor_step(False)
         return True
 
     """self.check_sampledata()
@@ -197,16 +205,7 @@ class LiqBioPipeline(ClinseqPipeline):
             for cancer_capture in self.get_mapped_captures_cancer():
                 normal_cancer_capture_pair.append( (normal_capture, cancer_capture) )
 
-                # self.configure_panel_analysis_cancer_vs_normal(
-                #    normal_capture, cancer_capture) below code is same as the in this function
-
-                #self.configure_somatic_calling(normal_capture, cancer_capture)
-
-                #if self.vep_data_is_available():
-                #    self.configure_vep(normal_capture, cancer_capture)
-                #self.configure_vcf_add_sample(normal_capture, cancer_capture)
-                #self.configure_make_allelic_fraction_track(normal_capture, cancer_capture)
-                #self.configure_msi_sensor(normal_capture, cancer_capture)
+                self.configure_msi_sensor(normal_capture, cancer_capture)
                 ## self.configure_hz_conc(normal_capture, cancer_capture)
 
         return normal_cancer_capture_pair
@@ -262,8 +261,22 @@ class LiqBioPipeline(ClinseqPipeline):
             self.normal_cancer_pair_to_results[(normal_capture, cancer_capture)].somatic_vcf = \
                 somatic_seq.output_vcf
 
-
         return True
+
+    def configure_vep_step(self, mflag=True):
+        """Variant effect prediction and merge the germline and somatic normal cancer samples"""
+        for normal_capture, cancer_capture in self.configure_panel_analyses_normal_vs_cancer_somatic():
+            if self.vep_data_is_available():
+                self.configure_vep(normal_capture, cancer_capture, flag=mflag)
+            self.configure_vcf_add_sample(normal_capture, cancer_capture, flag=mflag)
+            self.configure_make_allelic_fraction_track(normal_capture, cancer_capture, flag=mflag)
+
+    def configure_msi_sensor_step(self, mflag=True):
+        """msi tool"""
+        for normal_capture, cancer_capture in self.configure_panel_analyses_normal_vs_cancer_somatic():
+            self.configure_msi_sensor(normal_capture, cancer_capture, flag=mflag)
+        return True
+
 
 
     # Remove clinseq barcodes for which data is not available:
