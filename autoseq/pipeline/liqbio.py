@@ -131,7 +131,7 @@ class LiqBioPipeline(ClinseqPipeline):
             self.configure_somatic_varinat_callers(caller, False)
         self.configure_somaticseq_merge_variants(False)
         self.configure_vep_step(False)
-        #self.configure_msi_sensor_step(False)
+        self.configure_msi_sensor_step(False)
         return True
 
     """self.check_sampledata()
@@ -141,10 +141,10 @@ class LiqBioPipeline(ClinseqPipeline):
             self.configure_umi_processing() --> added in alignment_step()
         else:
             # Configure alignment and merging of fastq data for all clinseq barcodes:
-            self.configure_align_and_merge() ---> need to added
+            self.configure_align_and_merge() ---> need to added (with out umi)
 
         # Configure all panel analyses:
-        self.configure_panel_analyses()
+        self.configure_panel_analyses() -->splited and added
 
         # Configure liqbio-specific panel analyses:
         self.configure_panel_analyses_liqbio(umi)
@@ -205,7 +205,7 @@ class LiqBioPipeline(ClinseqPipeline):
             for cancer_capture in self.get_mapped_captures_cancer():
                 normal_cancer_capture_pair.append( (normal_capture, cancer_capture) )
 
-                self.configure_msi_sensor(normal_capture, cancer_capture)
+                #self.configure_msi_sensor(normal_capture, cancer_capture)
                 ## self.configure_hz_conc(normal_capture, cancer_capture)
 
         return normal_cancer_capture_pair
