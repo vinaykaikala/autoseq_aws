@@ -53,7 +53,7 @@ class Awscli():
         for each_file in args:
             if not os.path.exists(each_file):
                 logging.info("Coping file from s3://{bucket}/{filepath} to {filepath}".format(bucket=self.s3bucket, filepath=each_file))
-                cmd ='aws s3 cp s3://{bucket}/{file_path}  {file_path}'.format(bucket=self.s3bucket, file_path=each_file)
+                cmd ='aws s3 cp s3://{bucket}{file_path}  {file_path}'.format(bucket=self.s3bucket, file_path=each_file)
                 self.run_awscmd(cmd)
         return True
 
