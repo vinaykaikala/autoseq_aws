@@ -48,6 +48,7 @@ class Awscli():
     def get_s3files(self, *args):
         """Get common files required for all steps"""
         cmd = "aws s3 ls s3://{bucket}".format(bucket=self.s3bucket)
+        logging.info(cmd)
         self.run_awscmd(cmd)
         for each_file in args:
             if not os.path.exists(each_file):
@@ -76,8 +77,8 @@ class Awscli():
         cmd = 'aws s3 cp --recursive %s %s' % (s3_path, directory_to_download)
 
     def run_awscmd(self, cmd):
-        #add conda env
-        cmd = 'source activate awscli && ' + cmd
+        #add conda env aws cli to run the commands
+        cmd = '/usr/local/conda3/envs/awscli/bin/' + cmd
         subprocess.check_call(shlex.split(cmd))
         return True
 
