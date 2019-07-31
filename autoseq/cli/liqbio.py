@@ -27,7 +27,8 @@ def liqbio(ctx, step, sample ):
     aws_cli = ctx.obj['awscli']
     #get sample file from s3 and create directory if does not existsa
     logging.info("Copy the files required for liqbio  pipeline from s3")
-    aws_cli.check_and_create_dir(sample)
+
+    aws_cli.check_and_create_dir(os.path.dirname(sample))
     aws_cli.get_s3files(sample)
     aws_cli.set_fastq_files(sample)
 
