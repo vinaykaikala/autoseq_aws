@@ -37,7 +37,6 @@ class Awscli():
         self.check_and_create_dir(self.outdir)
         self.check_and_create_dir(self.libdir)
         self.check_and_create_dir(self.refdata_dir)
-        self.check_and_create_dir(self.sampledata_dir)
         # check if output directory exist  if not create it
 
         #get ref file from s3
