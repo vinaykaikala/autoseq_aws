@@ -42,9 +42,6 @@ class Awscli():
         #get ref file from s3
         self.get_s3files(refdata)
 
-
-
-
     def get_s3files(self, *args):
         """Get common files required for all steps"""
         cmd = "aws s3 ls s3://{bucket}".format(bucket=self.s3bucket)
