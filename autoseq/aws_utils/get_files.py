@@ -28,7 +28,7 @@ class Awscli():
         self.base_dir = '/nfs/PROBIO'
         self.s3bucket = s3bucket
         self.outdir = outdir
-        self.sampledata = json.load(sampledata)
+        #self.sampledata = json.load(sampledata)
         self.sampledata_dir = os.path.dirname(self.sampledata)
         self.refdata = refdata
         self.refdata_dir = os.path.dirname(refdata)
