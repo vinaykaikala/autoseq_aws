@@ -53,6 +53,7 @@ def cli(ctx, ref, job_params, outdir, libdir, runner_name, loglevel, jobdb, dot_
     ctx.obj['cores'] = cores
     ctx.obj['umi'] = umi
     ctx.obj['scratch'] = scratch
+    ctx.obj['awscli'] = aws_cli
 
     def capture_sigint(sig, frame):
         """

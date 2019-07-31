@@ -6,6 +6,7 @@ import time
 import subprocess
 import shlex
 import pathlib
+from autoseq.aws_utils.s3_files_config import files_for_each_step
 
 class Awscli():
     """Get required files from s3 to run the pipeline"""
@@ -31,6 +32,8 @@ class Awscli():
         self.refdata = refdata
         self.refdata_dir = os.path.dirname(refdata)
         self.libdir = libdir
+        self.sample_data = {}
+        self.files_for_each_step = files_for_each_step
 
         #check and create directories for autoseq pipeline
         self.check_and_create_dir(self.base_dir)
@@ -41,6 +44,9 @@ class Awscli():
 
         #get ref file from s3
         self.get_s3files(refdata)
+
+    def get_files_for_current_step(self):
+        pass
 
     def get_s3files(self, *args):
         """Get common files required for all steps"""
@@ -79,21 +85,29 @@ class Awscli():
         subprocess.check_call(shlex.split(cmd))
         return True
 
-    def get_all_clinseq_barcodes(self):
+    def set_fastq_files(self, sample_file):
         """
         :return: All clinseq barcodes included in this clinseq analysis pipeline's panel data.
         """
+        self.sample_data = json.load(open(sample_file, 'r').read())
         all_clinseq_barcodes = \
             self.sampledata['T'] + \
             self.sampledata['N'] + \
             self.sampledata['CFDNA']
-        return filter(lambda bc: bc != None, all_clinseq_barcodes)
+        filter(lambda bc: bc != None, all_clinseq_barcodes)
+
+        temp_dirnames = []
+        for each_fastq_dir in all_clinseq_barcodes:
+            temp_dirnames.append({'name': each_fastq_dir, 'type': 'dir'})
+
+        self.files_for_each_step['qc']['files'] = temp_dirnames
 
     def check_and_create_dir(self, dirname):
         """check if base path is same for current step"""
         if not os.path.join(*pathlib.Path(dirname).parts[0:3]) == self.base_dir:
             raise Exception('base path should be /nfs/PROBIO')
-
+        if os.path.isfile(dirname):
+            dirname = os.path.dirname(dirname)
         try:
             os.makedirs(dirname)
         except Exception as e:
