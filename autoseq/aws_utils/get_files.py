@@ -91,9 +91,9 @@ class Awscli():
         """
         self.sample_data = json.load(open(sample_file, 'r'))
         all_clinseq_barcodes = \
-            self.sampledata['T'] + \
-            self.sampledata['N'] + \
-            self.sampledata['CFDNA']
+            self.sample_data['T'] + \
+            self.sample_data['N'] + \
+            self.sample_data['CFDNA']
         filter(lambda bc: bc != None, all_clinseq_barcodes)
 
         temp_dirnames = []
