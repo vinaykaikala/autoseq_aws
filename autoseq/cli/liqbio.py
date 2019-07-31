@@ -24,19 +24,19 @@ def liqbio(ctx, step, sample ):
     logging.info("Stetting up required files for Liquid Biopsy pipeline")
 
     #get required files s3 before we start the pipeline
-    aws_cli =  Awscli(sample, ctx.obj['refdata'], ctx.obj['outdir'], ctx.obj['libdir'], s3bucket='probio-genome')
-    aws_cli.get_common()
-    print("Listed all the aws files")
+    #aws_cli =  Awscli(sample, ctx.obj['refdata'], ctx.obj['outdir'], ctx.obj['libdir'], s3bucket='probio-genome')
+    #aws_cli.get_common()
+    #print("Listed all the aws files")
 
 
-    logging.info("Running Liquid Biopsy pipeline")
-    logging.info("Sample is {}".format(sample))
+    #logging.info("Running Liquid Biopsy pipeline")
+    #logging.info("Sample is {}".format(sample))
 
-    logging.debug("Reading sample config from {}".format(sample))
+    #logging.debug("Reading sample config from {}".format(sample))
     #sampledata = json.load(sample)
 
-    if ctx.obj['jobdb']:
-        mkdir(os.path.dirname(ctx.obj['jobdb']))
+    #if ctx.obj['jobdb']:
+    #    mkdir(os.path.dirname(ctx.obj['jobdb']))
 
     #ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
     #                                    refdata=ctx.obj['refdata'],

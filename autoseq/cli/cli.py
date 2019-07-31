@@ -9,6 +9,7 @@ from pypedream import runners
 from .alascca import alascca as alascca_cmd
 from .liqbio import liqbio as liqbio_cmd
 from .liqbio import liqbio_prepare as liqbio_prepare_cmd
+from autoseq.aws_utils.get_files import Awscli
 
 __author__ = 'dankle; Vinay Kaikala'
 
@@ -31,6 +32,13 @@ __author__ = 'dankle; Vinay Kaikala'
 @click.option('--scratch', default="/tmp", help="scratch dir to use")
 @click.pass_context
 def cli(ctx, ref, job_params, outdir, libdir, runner_name, loglevel, jobdb, dot_file, cores, umi, scratch):
+
+    setup_logging(loglevel)
+    logging.info("Setting up data from s3 for autoseq pipeline................... ")
+
+    #get common files required for pipelines from aws s3
+    aws_cli = Awscli(ref, outdir, libdir, s3bucket='probio-genome')
+
     setup_logging(loglevel)
     logging.debug("Reading reference data from {}".format(ref))
     ctx.obj = {}

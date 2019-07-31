@@ -9,10 +9,9 @@ import pathlib
 
 class Awscli():
     """Get required files from s3 to run the pipeline"""
-    def __init__(self, sampledata, refdata, outdir, libdir, s3bucket='probio-genome'):
+    def __init__(self,  refdata, outdir, libdir, s3bucket='probio-genome'):
 
         """
-        :param sampledata:
         :param refdata:
         :param outdir:
         :param libdir:
@@ -20,16 +19,15 @@ class Awscli():
 
         the base directory path should be
         base: /nfs/PROBIO
-        Fastq : /nfs/PROBIO/INBOX/
-        outputs: /nfs/PROBIO/autoseq-output/<sdid>
-        confs: /nfs/PROBIO/config/<sdid>.json
+        Fastq : /nfs/PROBIO/INBOX/                    --libdir
+        outputs: /nfs/PROBIO/autoseq-output/<sdid>    --outdir
+        confs: /nfs/PROBIO/config/<sdid>.json         --sample
+        refdata: /nfs/PROBIO/autoseq-genome           --ref
         """
 
         self.base_dir = '/nfs/PROBIO'
         self.s3bucket = s3bucket
         self.outdir = outdir
-        #self.sampledata = json.load(sampledata)
-        self.sampledata_dir = os.path.dirname(self.sampledata)
         self.refdata = refdata
         self.refdata_dir = os.path.dirname(refdata)
         self.libdir = libdir
@@ -42,18 +40,31 @@ class Awscli():
         self.check_and_create_dir(self, self.sampledata_dir)
         # check if output directory exist  if not create it
 
+        #get ref file from s3
+        self.get_s3files(refdata)
 
 
-    def get_common(self):
+
+
+    def get_s3files(self, *args):
         """Get common files required for all steps"""
-        cmd = "aws s3 ls s3://" + self.s3bucket
-        self.run_awscmd(cmd)
 
-    def get(self, step):
+        for each_file in args:
+            if not os.path.exists(each_file):
+                logging.info("Coping file from s3 to {}".format(each_file))
+                cmd ='aws s3 cp s3://{bucket}/{file_path}  {file_path}'.format(bucket=self.s3bucket, file_path=each_file)
+                self.run_awscmd(cmd)
+
+        return True
+
+    def get_s3directories(self, step):
         """Get the files from s3 for given step"""
         pass
 
-    def put(self):
+    def put_file_to_s3(self):
+        pass
+
+    def put_directories_s3(self):
         pass
 
     def download_folder(s3_path, directory_to_download):
