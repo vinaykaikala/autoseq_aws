@@ -14,23 +14,30 @@ from autoseq.aws_utils.get_files import Awscli
 
 @click.command()
 @click.option('--step', required=True, help="Tool name to run the step")
-@click.argument('sample', type=click.File('r'))
+#@click.argument('sample', type=click.File('r'))
+@click.option('--sample', required=True, help="sample json file")
 @click.pass_context
 def liqbio(ctx, step, sample ):
 
-    logging.info("Running Liquid Biopsy pipeline")
-    logging.info("Sample is {}".format(sample))
 
-    logging.debug("Reading sample config from {}".format(sample))
-    sampledata = json.load(sample)
-
-    if ctx.obj['jobdb']:
-        mkdir(os.path.dirname(ctx.obj['jobdb']))
+    logging.info("Starting Liquid Biopsy pipeline")
+    logging.info("Stetting up required files for Liquid Biopsy pipeline")
 
     #get required files s3 before we start the pipeline
     aws_cli =  Awscli(sample, ctx.obj['refdata'], ctx.obj['outdir'], ctx.obj['libdir'], s3bucket='probio-genome')
     aws_cli.get_common()
     print("Listed all the aws files")
+
+
+    logging.info("Running Liquid Biopsy pipeline")
+    logging.info("Sample is {}".format(sample))
+
+    logging.debug("Reading sample config from {}".format(sample))
+    #sampledata = json.load(sample)
+
+    if ctx.obj['jobdb']:
+        mkdir(os.path.dirname(ctx.obj['jobdb']))
+
     #ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
     #                                    refdata=ctx.obj['refdata'],
     #                                    job_params=ctx.obj['job_params'],
@@ -58,7 +65,7 @@ def liqbio(ctx, step, sample ):
 
     # return_code from run_pipeline() will be != 0 if the pipeline fails
     #sys.exit(ctx.obj['pipeline'].exitcode)
-    sys.exit(ctx.obj['pipeline'].exitcode)
+    #sys.exit(ctx.obj['pipeline'].exitcode)
 
 
 @click.command()
