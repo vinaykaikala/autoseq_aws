@@ -89,7 +89,7 @@ class Awscli():
         """
         :return: All clinseq barcodes included in this clinseq analysis pipeline's panel data.
         """
-        self.sample_data = json.load(open(sample_file, 'r').read())
+        self.sample_data = json.load(sample_file)
         all_clinseq_barcodes = \
             self.sampledata['T'] + \
             self.sampledata['N'] + \
