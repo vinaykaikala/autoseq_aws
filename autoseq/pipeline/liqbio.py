@@ -124,14 +124,14 @@ class LiqBioPipeline(ClinseqPipeline):
         """Set the all class vaibales required for processing the liqbio pipeline"""
         #set required bamfiles and other object variable
         self.check_sampledata()
-        self.configure_umi_processing(False)
-        self.configure_panel_analyses_cnvkit(False)
-        self.configure_panel_analyses_normal_germline(False)
-        for caller in ['vardict', 'strelka', 'mutect2', 'varscan']:
-            self.configure_somatic_varinat_callers(caller, False)
-        self.configure_somaticseq_merge_variants(False)
-        self.configure_vep_step(False)
-        self.configure_msi_sensor_step(False)
+        #self.configure_umi_processing(False)
+        #self.configure_panel_analyses_cnvkit(False)
+        #self.configure_panel_analyses_normal_germline(False)
+        #for caller in ['vardict', 'strelka', 'mutect2', 'varscan']:
+        #    self.configure_somatic_varinat_callers(caller, False)
+        #self.configure_somaticseq_merge_variants(False)
+        #self.configure_vep_step(False)
+        #self.configure_msi_sensor_step(False)
         return True
 
     """self.check_sampledata()
