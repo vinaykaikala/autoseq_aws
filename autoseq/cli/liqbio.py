@@ -31,6 +31,8 @@ def liqbio(ctx, step, sample ):
     aws_cli.check_and_create_dir(os.path.dirname(sample))
     aws_cli.get_s3files(sample)
     aws_cli.set_fastq_files(sample)
+    logging.info("Getting required files for current step {} from s3".format(step))
+    aws_cli.get_files_for_current_step(step)
 
     print('done......')
 

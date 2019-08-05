@@ -45,8 +45,23 @@ class Awscli():
         #get ref file from s3
         self.get_s3files(refdata)
 
-    def get_files_for_current_step(self):
-        pass
+    def get_files_for_current_step(self, current_step):
+        """
+        Get required files for current step from s3
+        :param current_step :
+        """
+        print(self.files_for_each_step)
+        if current_step not in self.files_for_each_step:
+            raise Exception('Invalid step name , configure required files in s3_files_config.py')
+
+        base_dir = self.files_for_each_step[current_step]['base_dir']
+        for each_file in self.files_for_each_step[current_step]['files']:
+            file_complete_path = os.path.join(base_dir ,each_file.name)
+            if each_file.type == 'dir':
+                print("dir:",file_complete_path)
+            else:
+                print("file:",file_complete_path)
+        return True
 
     def get_s3files(self, *args):
         """Get common files required for all steps"""
