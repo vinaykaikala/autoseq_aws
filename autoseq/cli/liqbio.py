@@ -37,33 +37,36 @@ def liqbio(ctx, step, sample ):
     print('done......')
 
     logging.info("Running Liquid Biopsy pipeline")
-    #logging.info("Sample is {}".format(sample))
+    logging.info("Sample is {}".format(sample))
 
-    #logging.debug("Reading sample config from {}".format(sample))
-    #sampledata = json.load(sample)
+    logging.debug("Reading sample config from {}".format(sample))
+    sampledata = json.load(open(sample,'r'))
 
-    #if ctx.obj['jobdb']:
-    #    mkdir(os.path.dirname(ctx.obj['jobdb']))
+    if ctx.obj['jobdb']:
+        mkdir(os.path.dirname(ctx.obj['jobdb']))
 
-    #ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
-    #                                    refdata=ctx.obj['refdata'],
-    #                                    job_params=ctx.obj['job_params'],
-    #                                    outdir=ctx.obj['outdir'],
-    #                                     libdir=ctx.obj['libdir'],
-    #                                     maxcores=ctx.obj['cores'],
-    #                                     runner=ctx.obj['runner'],
-    #                                     jobdb=ctx.obj['jobdb'],
-    #                                     dot_file=ctx.obj['dot_file'],
-    #                                     umi=ctx.obj['umi'],
-    #                                     scratch=ctx.obj['scratch'],
-    #                                     )
+    ctx.obj['pipeline'] = LiqBioPipeline(sampledata=sampledata,
+                                        refdata=ctx.obj['refdata'],
+                                        job_params=ctx.obj['job_params'],
+                                        outdir=ctx.obj['outdir'],
+                                         libdir=ctx.obj['libdir'],
+                                         maxcores=ctx.obj['cores'],
+                                         runner=ctx.obj['runner'],
+                                         jobdb=ctx.obj['jobdb'],
+                                         dot_file=ctx.obj['dot_file'],
+                                         umi=ctx.obj['umi'],
+                                         scratch=ctx.obj['scratch'],
+                                         )
 
-    #step_status = ctx.obj['pipeline'].runaws(step)
-    #if not step_status:
-    #    logging.info("No Step configured with step name: " + step + ' check step_to_run dict to fix error')
-    #    sys.exit(400)
+    step_status = ctx.obj['pipeline'].runaws(step)
+    if not step_status:
+        logging.info("No Step configured with step name: " + step + ' check step_to_run dict to fix error')
+        sys.exit(400)
 
     # start main analysis
+    logging.info("Get All the outputs required for pipeline to run.......")
+    print(  ctx.obj['pipeline'].get_outputs() )
+    print("done ....k")
     #ctx.obj['pipeline'].start()
     #logging.info("Waiting for pipeline to finish.")
     #while ctx.obj['pipeline'].is_alive():

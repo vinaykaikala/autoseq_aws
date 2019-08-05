@@ -34,6 +34,7 @@ class Awscli():
         self.libdir = libdir
         self.sample_data = {}
         self.files_for_each_step = files_for_each_step
+        self.sdid = "" # this value is set when  ran set_fastq_files()
 
         #check and create directories for autoseq pipeline
         self.check_and_create_dir(self.base_dir)
@@ -109,6 +110,7 @@ class Awscli():
         :return: All clinseq barcodes included in this clinseq analysis pipeline's panel data.
         """
         self.sample_data = json.load(open(sample_file, 'r'))
+        self.sdid = self.sample_data['sdid']
         all_clinseq_barcodes = \
             self.sample_data['T'] + \
             self.sample_data['N'] + \

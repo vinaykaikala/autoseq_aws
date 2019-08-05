@@ -12,3 +12,11 @@ files_for_each_step = {
         'files': [{'name': 'bwa', 'type': 'dir'}]
     }
 }
+
+
+files_for_each_step_new = {
+    'qc': {
+        'base': {'path': '/nfs/PROBIO/INBOX', 'files': []},
+        'sample': {'path': '/nfs/PROBIO/autoseq-output', 'files': [] }
+    }
+}
