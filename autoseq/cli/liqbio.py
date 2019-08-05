@@ -64,9 +64,19 @@ def liqbio(ctx, step, sample ):
         sys.exit(400)
 
     # start main analysis
-    logging.info("Get All the outputs required for pipeline to run.......")
-    print(  ctx.obj['pipeline'].get_outputs() )
-    print("done ....k")
+    logging.info("Get All the inputs files required for pipeline to run.......")
+    #print(  ctx.obj['pipeline'].get_outputs() )
+    required_files = {}
+    for j in ctx.obj['pipeline']._get_ordered_jobs():
+        for varname in j.__dict__:
+            obj = j.__dict__[varname]
+            if varname.startwith('input'):
+                print("HIIIII")
+                print(obj)
+
+
+
+
     #ctx.obj['pipeline'].start()
     #logging.info("Waiting for pipeline to finish.")
     #while ctx.obj['pipeline'].is_alive():
