@@ -70,7 +70,7 @@ def liqbio(ctx, step, sample ):
     for j in ctx.obj['pipeline']._get_ordered_jobs():
         for varname in j.__dict__:
             obj = j.__dict__[varname]
-            if varname.startwith('input'):
+            if varname.startswith('input'):
                 print("HIIIII")
                 print(obj)
 
