@@ -64,6 +64,7 @@ class LiqBioPipeline(ClinseqPipeline):
     def qc_step(self):
         """Run Steps for QC : Docker image: qc"""
         # Configure fastq QCs:
+        self.check_sampledata()
         self.configure_fastq_qcs()
         # Configure MultiQC:
         #self.configure_multi_qc()
@@ -123,7 +124,7 @@ class LiqBioPipeline(ClinseqPipeline):
     def initial_step(self):
         """Set the all class vaibales required for processing the liqbio pipeline"""
         #set required bamfiles and other object variable
-        self.check_sampledata()
+        #self.check_sampledata()
         #self.configure_umi_processing(False)
         #self.configure_panel_analyses_cnvkit(False)
         #self.configure_panel_analyses_normal_germline(False)

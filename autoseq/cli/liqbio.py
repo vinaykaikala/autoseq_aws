@@ -75,6 +75,7 @@ def liqbio(ctx, step, sample ):
                 print(obj)
                 aws_cli.get_s3files(obj)
 
+    ctx.obj['pipeline'].check_sampledata()
     #ctx.obj['pipeline'].start()
     #logging.info("Waiting for pipeline to finish.")
     #while ctx.obj['pipeline'].is_alive():
