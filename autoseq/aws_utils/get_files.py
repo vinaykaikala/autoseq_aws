@@ -77,7 +77,7 @@ class Awscli():
 
     def get_s3directories(self, dirname):
         """Get the files from s3 for given step"""
-        cmd = 'aws s3 cp --recursive s3://{bucket}{file_path}  /{file_path}'.format(bucket=self.s3bucket, filepath=dirname)
+        cmd = 'aws s3 cp --recursive s3://{bucket}{filepath}  /{filepath}'.format(bucket=self.s3bucket, filepath=dirname)
         if not os.path.exists(dirname):
             logging.info(cmd)
             self.run_awscmd(cmd)
