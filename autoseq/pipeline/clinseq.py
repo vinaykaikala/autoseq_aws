@@ -471,7 +471,7 @@ class ClinseqPipeline(PypedreamPipeline):
 
         self.qc_files.append(markdups.output_metrics)
 
-    def configure_fastq_qcs(self):
+    def configure_fastq_qcs(self, flag=True):
         """
         Configure QC on all fastq files that exist for this pipeline instance.
 
@@ -489,7 +489,8 @@ class ClinseqPipeline(PypedreamPipeline):
                     self.outdir, clinseq_barcode)
                 fastqc.jobname = "fastqc-{}".format(clinseq_barcode)
                 self.qc_files.append(fastqc.output)
-                self.add(fastqc)
+                if flag:
+                    self.add(fastqc)
                 #cmd_list.append(fastqc.command())
 
         return cmd_list
