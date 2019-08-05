@@ -58,9 +58,9 @@ class Awscli():
         for each_file in self.files_for_each_step[current_step]['files']:
             file_complete_path = os.path.join(base_dir ,each_file['name'])
             if each_file['type'] == 'dir':
-                print("dir:",file_complete_path)
+                self.get_s3directories(file_complete_path)
             else:
-                print("file:",file_complete_path)
+                self.get_s3files(file_complete_path)
         return True
 
     def get_s3files(self, *args):
@@ -75,9 +75,13 @@ class Awscli():
                 self.run_awscmd(cmd)
         return True
 
-    def get_s3directories(self, step):
+    def get_s3directories(self, dirname):
         """Get the files from s3 for given step"""
-        pass
+        cmd = 'aws s3 cp --recursive s3://{bucket}{file_path}  /{file_path}'.format(bucket=self.s3bucket, filepath=dirname)
+        if not os.path.exists(dirname):
+            logging.info(cmd)
+            self.run_awscmd(cmd)
+        return True
 
     def put_file_to_s3(self):
         pass
