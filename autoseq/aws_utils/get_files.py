@@ -56,8 +56,8 @@ class Awscli():
 
         base_dir = self.files_for_each_step[current_step]['base_dir']
         for each_file in self.files_for_each_step[current_step]['files']:
-            file_complete_path = os.path.join(base_dir ,each_file.name)
-            if each_file.type == 'dir':
+            file_complete_path = os.path.join(base_dir ,each_file['name'])
+            if each_file['type'] == 'dir':
                 print("dir:",file_complete_path)
             else:
                 print("file:",file_complete_path)
