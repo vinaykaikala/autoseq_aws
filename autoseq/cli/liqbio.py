@@ -73,10 +73,7 @@ def liqbio(ctx, step, sample ):
             if varname.startswith('input'):
                 print("HIIIII")
                 print(obj)
-                aws_cli.get_s3files()
-
-
-
+                aws_cli.get_s3files(obj)
 
     #ctx.obj['pipeline'].start()
     #logging.info("Waiting for pipeline to finish.")

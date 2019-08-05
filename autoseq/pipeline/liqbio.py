@@ -66,7 +66,7 @@ class LiqBioPipeline(ClinseqPipeline):
         # Configure fastq QCs:
         self.configure_fastq_qcs()
         # Configure MultiQC:
-        self.configure_multi_qc()
+        #self.configure_multi_qc()
         return True
 
     def alignment_step(self):
