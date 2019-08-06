@@ -75,14 +75,14 @@ def liqbio(ctx, step, sample ):
                 aws_cli.get_s3files(obj)
 
     #ctx.obj['pipeline'].check_sampledata()
-    #ctx.obj['pipeline'].start()
-    #logging.info("Waiting for pipeline to finish.")
-    #while ctx.obj['pipeline'].is_alive():
-    #    logging.debug("Waiting for LiqBioPipeline")
-    #    time.sleep(5)
+    ctx.obj['pipeline'].start()
+    logging.info("Waiting for pipeline to finish.")
+    while ctx.obj['pipeline'].is_alive():
+        logging.debug("Waiting for LiqBioPipeline")
+        time.sleep(5)
 
     # return_code from run_pipeline() will be != 0 if the pipeline fails
-    #sys.exit(ctx.obj['pipeline'].exitcode)
+    sys.exit(ctx.obj['pipeline'].exitcode)
     #sys.exit(ctx.obj['pipeline'].exitcode)
 
 
