@@ -124,8 +124,8 @@ class LiqBioPipeline(ClinseqPipeline):
     def initial_step(self):
         """Set the all class vaibales required for processing the liqbio pipeline"""
         #set required bamfiles and other object variable
+        self.check_sampledata()
         self.configure_fastq_qcs(False)
-        #self.check_sampledata() dont activate it
         #self.configure_umi_processing(False)
         #self.configure_panel_analyses_cnvkit(False)
         #self.configure_panel_analyses_normal_germline(False)
