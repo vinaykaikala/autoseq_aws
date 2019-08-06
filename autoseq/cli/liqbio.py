@@ -71,9 +71,8 @@ def liqbio(ctx, step, sample ):
         for varname in j.__dict__:
             obj = j.__dict__[varname]
             if varname.startswith('input'):
-                print("HIIIII")
                 print(obj)
-                aws_cli.get_s3files(obj)
+                #aws_cli.get_s3files(obj)
 
     ctx.obj['pipeline'].check_sampledata()
     #ctx.obj['pipeline'].start()
